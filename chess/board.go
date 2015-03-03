@@ -51,6 +51,15 @@ type Board struct {
 	Spaces [Size][Size]Piece
 }
 
+type Coord struct {
+	Row, Col int
+}
+
+type Move struct {
+	From, To Coord
+	Capture bool
+}
+
 func (b *Board) Setup() {
 	// Wipe everything off.
 	for c := 0; c < Size; c++ {
@@ -178,20 +187,48 @@ func KingMove(b *Board, row, col int) {
 	tryMove(b, color, row+1, col+1) // down-right
 }
 
-func PawnMove(b *Board, row, col int) {
+func PawnMove(b *Board, row, col int) (possible []Move) {
 	// TODO: check return values.
 	color := b.Spaces[row][col].Color
 
 	if color == WhiteTeam {
 		// move down (+)
-		tryMove(b, color, row+1, col)
-		tryMove(b, color, row+1, col-1) // left capture
-		tryMove(b, color, row+1, col+1) // right capture
+		valid, _ := tryMove(b, color, row+1, col)
+
+		if valid {
+			possible = append(possible, Move{To: Coord{row, col}, From: Coord{row+1, col}, Capture: false)
+		}
+
+		valid, capture := tryMove(b, color, row+1, col-1) // left capture
+
+		if valid && capture {
+			possible = append(possible, Move{To: Coord{row, col}, From: Coord{row+1, col-1}, Capture: true)
+		}
+
+		valid, capture = tryMove(b, color, row+1, col+1) // right capture
+
+		if valid && capture {
+			possible = append(possible, Move{To: Coord{row, col}, From: Coord{row+1, col+1}, Capture: true)
+		}
 	} else {
 		// move up (-)
-		tryMove(b, color, row-1, col)
-		tryMove(b, color, row-1, col-1) // left capture
-		tryMove(b, color, row-1, col+1) // right capture
+		valid, _ := tryMove(b, color, row-1, col)
+
+		if valid {
+			possible = append(possible, Move{To: Coord{row, col}, From: Coord{row-1, col}, Capture: false})
+		}
+
+		valid, capture := tryMove(b, color, row-1, col-1) // left capture
+
+		if valid && capture {
+			possible = append(possible, Move{To: Coord{row, col}, From: Coord{row-1, col-1}, Capture: true})
+		}
+
+		valid, capture = tryMove(b, color, row-1, col+1) // right capture
+
+		if valid && capture {
+			possible = append(possible, Move{To: Coord{row, col}, From: Coord{row-1, col+1}, Capture: true})
+		}
 	}
 }
 
@@ -231,4 +268,6 @@ func lineMove(b *Board, row, col, rowChange, colChange int) {
 
 		fmt.Printf("%d, %d\n", row, col)
 	}
+
+	return
 }
