@@ -27,4 +27,6 @@ func main() {
 
 	board := chess.Board{}
 	board.Setup()
+
+	fmt.Print(board)
 }
