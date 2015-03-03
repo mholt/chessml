@@ -147,37 +147,33 @@ func QueenMove(b *Board, row, col int) {
 }
 
 func KnightMove(b *Board, row, col int) {
-	tryMove(b, row, col, -2, -1) // up-left
-	tryMove(b, row, col, -2, 1)  // up-right
+	color := b.Spaces[row][col].Color
 
-	tryMove(b, row, col, 2, -1) // down-left
-	tryMove(b, row, col, 2, 1)  // down-right
+	tryMove(b, color, row-2, col-1) // up-left
+	tryMove(b, color, row-2, col+1) // up-right
 
-	tryMove(b, row, col, -1, -2) // left-up
-	tryMove(b, row, col, 1, -2)  // left-down
+	tryMove(b, color, row+2, col-1) // down-left
+	tryMove(b, color, row+2, col+1) // down-right
 
-	tryMove(b, row, col, -1, 2) // right-up
-	tryMove(b, row, col, 1, 2)  // right-down
+	tryMove(b, color, row-1, col-2) // left-up
+	tryMove(b, color, row+1, col-2) // left-down
+
+	tryMove(b, color, row-1, col+2) // right-up
+	tryMove(b, color, row+1, col+2) // right-down
 }
 
-func tryMove(b *Board, row, col, rowChange, colChange int) (valid, capture bool) {
-	piece := b.Spaces[row][col]
-
-	nextRow, nextCol := row+rowChange, col+colChange
-
-	if nextRow < 0 || nextRow >= Size || nextCol < 0 || nextCol >= Size {
+func tryMove(b *Board, pieceColor Color, row, col int) (valid, capture bool) {
+	if row < 0 || row >= Size || col < 0 || col >= Size {
 		return false, false
 	}
 
-	target := b.Spaces[nextRow][nextCol]
+	target := b.Spaces[row][col]
 
 	if target.Rank == Empty {
-		fmt.Printf("%d, %d\n", nextRow, nextCol)
-
+		// Valid move to empty square.
 		return true, false
-	} else if target.Color != piece.Color {
-		fmt.Printf("%d, %d\tcapture!\n", nextRow, nextCol)
-
+	} else if target.Color != pieceColor {
+		// Enemy Piece captured.
 		return true, true
 	}
 
@@ -185,22 +181,21 @@ func tryMove(b *Board, row, col, rowChange, colChange int) (valid, capture bool)
 }
 
 func lineMove(b *Board, row, col, rowChange, colChange int) {
-	piece := b.Spaces[row][col]
+	color := b.Spaces[row][col].Color
 
-	nextRow, nextCol := row+rowChange, col+colChange
+	for {
+		row += rowChange
+		col += colChange
 
-	for nextRow >= 0 && nextRow < Size && nextCol >= 0 && nextCol < Size {
-		target := b.Spaces[nextRow][nextCol]
+		valid, capture := tryMove(b, color, row, col)
 
-		if target.Rank == Empty {
-			fmt.Printf("%d, %d\n", nextRow, nextCol)
-		} else if target.Color != piece.Color {
-			fmt.Printf("%d, %d\tcapture!\n", nextRow, nextCol)
+		if !valid {
 			break
-		} else {
+		} else if capture {
+			fmt.Printf("%d, %d\tcapture!\n", row, col)
 			break
 		}
-		nextRow += rowChange
-		nextCol += colChange
+
+		fmt.Printf("%d, %d\n", row, col)
 	}
 }
