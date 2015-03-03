@@ -28,8 +28,8 @@ func main() {
 	var board chess.Board
 	board.Setup()
 
-	fmt.Print(board)
+	//fmt.Print(board)
 
-	chess.QueenMove(&board, 4, 4)
-	//board.MovesToSquare(chess.WhiteTeam, 0, 0)
+	chess.RookMove(&board, 4, 4)
+	//chess.KnightMove(&board, 0, 1)
 }

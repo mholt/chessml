@@ -146,6 +146,44 @@ func QueenMove(b *Board, row, col int) {
 	lineMove(b, row, col, 1, 1)   // down-right
 }
 
+func KnightMove(b *Board, row, col int) {
+	tryMove(b, row, col, -2, -1) // up-left
+	tryMove(b, row, col, -2, 1)  // up-right
+
+	tryMove(b, row, col, 2, -1) // down-left
+	tryMove(b, row, col, 2, 1)  // down-right
+
+	tryMove(b, row, col, -1, -2) // left-up
+	tryMove(b, row, col, 1, -2)  // left-down
+
+	tryMove(b, row, col, -1, 2) // right-up
+	tryMove(b, row, col, 1, 2)  // right-down
+}
+
+func tryMove(b *Board, row, col, rowChange, colChange int) (valid, capture bool) {
+	piece := b.Spaces[row][col]
+
+	nextRow, nextCol := row+rowChange, col+colChange
+
+	if nextRow < 0 || nextRow >= Size || nextCol < 0 || nextCol >= Size {
+		return false, false
+	}
+
+	target := b.Spaces[nextRow][nextCol]
+
+	if target.Rank == Empty {
+		fmt.Printf("%d, %d\n", nextRow, nextCol)
+
+		return true, false
+	} else if target.Color != piece.Color {
+		fmt.Printf("%d, %d\tcapture!\n", nextRow, nextCol)
+
+		return true, true
+	}
+
+	return false, false
+}
+
 func lineMove(b *Board, row, col, rowChange, colChange int) {
 	piece := b.Spaces[row][col]
 
