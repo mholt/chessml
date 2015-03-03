@@ -147,6 +147,7 @@ func QueenMove(b *Board, row, col int) {
 }
 
 func KnightMove(b *Board, row, col int) {
+	// TODO: check return values.
 	color := b.Spaces[row][col].Color
 
 	tryMove(b, color, row-2, col-1) // up-left
@@ -160,6 +161,38 @@ func KnightMove(b *Board, row, col int) {
 
 	tryMove(b, color, row-1, col+2) // right-up
 	tryMove(b, color, row+1, col+2) // right-down
+}
+
+func KingMove(b *Board, row, col int) {
+	// TODO: check return values.
+	color := b.Spaces[row][col].Color
+
+	tryMove(b, color, row-1, col) // up
+	tryMove(b, color, row+1, col) // down
+	tryMove(b, color, row, col-1) // left
+	tryMove(b, color, row, col+1) // right
+
+	tryMove(b, color, row-1, col-1) // up-left
+	tryMove(b, color, row-1, col+1) // up-right
+	tryMove(b, color, row+1, col-1) // down-left
+	tryMove(b, color, row+1, col+1) // down-right
+}
+
+func PawnMove(b *Board, row, col int) {
+	// TODO: check return values.
+	color := b.Spaces[row][col].Color
+
+	if color == WhiteTeam {
+		// move down (+)
+		tryMove(b, color, row+1, col)
+		tryMove(b, color, row+1, col-1) // left capture
+		tryMove(b, color, row+1, col+1) // right capture
+	} else {
+		// move up (-)
+		tryMove(b, color, row-1, col)
+		tryMove(b, color, row-1, col-1) // left capture
+		tryMove(b, color, row-1, col+1) // right capture
+	}
 }
 
 func tryMove(b *Board, pieceColor Color, row, col int) (valid, capture bool) {
