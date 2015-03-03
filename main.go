@@ -5,6 +5,8 @@ import (
 	"os"
 
 	"github.com/mholt/chessml/pgn"
+
+	"github.com/mholt/chessml/chess"
 )
 
 func main() {
@@ -21,5 +23,8 @@ func main() {
 		return
 	}
 
-	fmt.Println(len(g))
+	fmt.Printf("%d games loaded!\n", len(g))
+
+	board := chess.Board{}
+	board.Setup()
 }
