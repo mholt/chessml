@@ -25,8 +25,11 @@ func main() {
 
 	fmt.Printf("%d games loaded!\n", len(g))
 
-	board := chess.Board{}
+	var board chess.Board
 	board.Setup()
 
 	fmt.Print(board)
+
+	chess.QueenMove(&board, 4, 4)
+	//board.MovesToSquare(chess.WhiteTeam, 0, 0)
 }

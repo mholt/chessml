@@ -31,17 +31,17 @@ type Piece struct {
 
 const Size = 8
 
-var RankToSymbol map[Rank]string = map[Rank]string {
-	Empty: " ",
-	King: "K",
-	Queen: "Q",
+var RankToSymbol map[Rank]string = map[Rank]string{
+	Empty:  " ",
+	King:   "K",
+	Queen:  "Q",
 	Bishop: "B",
 	Knight: "N",
-	Rook: "R",
-	Pawn: "P",
+	Rook:   "R",
+	Pawn:   "P",
 }
 
-var ColorToSymbol map[Color]string = map[Color]string {
+var ColorToSymbol map[Color]string = map[Color]string{
 	WhiteTeam: "W",
 	BlackTeam: "B",
 }
@@ -119,4 +119,50 @@ func (b Board) String() string {
 	}
 
 	return buffer.String()
+}
+
+func RookMove(b *Board, row, col int) {
+	lineMove(b, row, col, -1, 0) // up
+	lineMove(b, row, col, 1, 0)  // down
+	lineMove(b, row, col, 0, -1) // left
+	lineMove(b, row, col, 0, 1)  // right
+}
+
+func BishopMove(b *Board, row, col int) {
+	lineMove(b, row, col, -1, -1) // up-left
+	lineMove(b, row, col, -1, 1)  // up-right
+	lineMove(b, row, col, 1, -1)  // down-left
+	lineMove(b, row, col, 1, 1)   // down-right
+}
+
+func QueenMove(b *Board, row, col int) {
+	lineMove(b, row, col, -1, 0)  // up
+	lineMove(b, row, col, 1, 0)   // down
+	lineMove(b, row, col, 0, -1)  // left
+	lineMove(b, row, col, 0, 1)   // right
+	lineMove(b, row, col, -1, -1) // up-left
+	lineMove(b, row, col, -1, 1)  // up-right
+	lineMove(b, row, col, 1, -1)  // down-left
+	lineMove(b, row, col, 1, 1)   // down-right
+}
+
+func lineMove(b *Board, row, col, rowChange, colChange int) {
+	piece := b.Spaces[row][col]
+
+	nextRow, nextCol := row+rowChange, col+colChange
+
+	for nextRow >= 0 && nextRow < Size && nextCol >= 0 && nextCol < Size {
+		target := b.Spaces[nextRow][nextCol]
+
+		if target.Rank == Empty {
+			fmt.Printf("%d, %d\n", nextRow, nextCol)
+		} else if target.Color != piece.Color {
+			fmt.Printf("%d, %d\tcapture!\n", nextRow, nextCol)
+			break
+		} else {
+			break
+		}
+		nextRow += rowChange
+		nextCol += colChange
+	}
 }
