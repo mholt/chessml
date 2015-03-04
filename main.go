@@ -30,6 +30,6 @@ func main() {
 
 	fmt.Print(board)
 
-	moves := chess.KnightMove(&board, 4, 4)
+	moves := chess.RookMove(&board, 4, 4)
 	fmt.Printf("moves: %d\n", len(moves))
 }

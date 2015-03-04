@@ -130,29 +130,43 @@ func (b Board) String() string {
 	return buffer.String()
 }
 
-func RookMove(b *Board, row, col int) {
-	lineMove(b, row, col, -1, 0) // up
-	lineMove(b, row, col, 1, 0)  // down
-	lineMove(b, row, col, 0, -1) // left
-	lineMove(b, row, col, 0, 1)  // right
+func RookMove(b *Board, row, col int) (possible []ValidMove) {
+	possible = extend(possible, lineMove(b, row, col, -1, 0)) // up
+	possible = extend(possible, lineMove(b, row, col, 1, 0))  // down
+	possible = extend(possible, lineMove(b, row, col, 0, -1)) // left
+	possible = extend(possible, lineMove(b, row, col, 0, 1))  // right
+
+	return
 }
 
-func BishopMove(b *Board, row, col int) {
-	lineMove(b, row, col, -1, -1) // up-left
-	lineMove(b, row, col, -1, 1)  // up-right
-	lineMove(b, row, col, 1, -1)  // down-left
-	lineMove(b, row, col, 1, 1)   // down-right
+func BishopMove(b *Board, row, col int) (possible []ValidMove) {
+	possible = extend(possible, lineMove(b, row, col, -1, -1)) // up-left
+	possible = extend(possible, lineMove(b, row, col, -1, 1))  // up-right
+	possible = extend(possible, lineMove(b, row, col, 1, -1))  // down-left
+	possible = extend(possible, lineMove(b, row, col, 1, 1))   // down-right
+
+	return
 }
 
-func QueenMove(b *Board, row, col int) {
-	lineMove(b, row, col, -1, 0)  // up
-	lineMove(b, row, col, 1, 0)   // down
-	lineMove(b, row, col, 0, -1)  // left
-	lineMove(b, row, col, 0, 1)   // right
-	lineMove(b, row, col, -1, -1) // up-left
-	lineMove(b, row, col, -1, 1)  // up-right
-	lineMove(b, row, col, 1, -1)  // down-left
-	lineMove(b, row, col, 1, 1)   // down-right
+func QueenMove(b *Board, row, col int) (possible []ValidMove) {
+	possible = extend(possible, lineMove(b, row, col, -1, 0))  // up
+	possible = extend(possible, lineMove(b, row, col, 1, 0))   // down
+	possible = extend(possible, lineMove(b, row, col, 0, -1))  // left
+	possible = extend(possible, lineMove(b, row, col, 0, 1))   // right
+	possible = extend(possible, lineMove(b, row, col, -1, -1)) // up-left
+	possible = extend(possible, lineMove(b, row, col, -1, 1))  // up-right
+	possible = extend(possible, lineMove(b, row, col, 1, -1))  // down-left
+	possible = extend(possible, lineMove(b, row, col, 1, 1))   // down-right
+
+	return
+}
+
+func extend(vm, toAdd []ValidMove) []ValidMove {
+	for _, ta := range toAdd {
+		vm = append(vm, ta)
+	}
+
+	return vm
 }
 
 func KnightMove(b *Board, row, col int) (possible []ValidMove) {
@@ -259,23 +273,24 @@ func tryMove(b *Board, pieceColor Color, row, col int) (valid, capture bool) {
 	return false, false
 }
 
-func lineMove(b *Board, row, col, rowChange, colChange int) {
+func lineMove(b *Board, row, col, rowDiff, colDiff int) (possible []ValidMove) {
 	color := b.Spaces[row][col].Color
+	toRow, toCol := row, col
 
 	for {
-		row += rowChange
-		col += colChange
+		toRow += rowDiff
+		toCol += colDiff
 
-		valid, capture := tryMove(b, color, row, col)
+		valid, capture := tryMove(b, color, toRow, toCol)
 
 		if !valid {
 			break
 		} else if capture {
-			fmt.Printf("%d, %d\tcapture!\n", row, col)
+			possible = append(possible, ValidMove{From: Coord{row, col}, To: Coord{toRow, toCol}, Capture: capture})
 			break
 		}
 
-		fmt.Printf("%d, %d\n", row, col)
+		possible = append(possible, ValidMove{From: Coord{row, col}, To: Coord{toRow, toCol}, Capture: capture})
 	}
 
 	return
