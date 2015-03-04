@@ -209,7 +209,6 @@ func tryAndAppend(vm []ValidMove, b *Board, row, col, rowDiff, colDiff int) []Va
 }
 
 func PawnMove(b *Board, row, col int) (possible []ValidMove) {
-	// TODO: allow double moves from starting rows.
 	color := b.Spaces[row][col].Color
 
 	if color == WhiteTeam {
@@ -231,6 +230,14 @@ func PawnMove(b *Board, row, col int) (possible []ValidMove) {
 		if valid && capture {
 			possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row + 1, col + 1}, Capture: true})
 		}
+
+		if row == 1 { // double move from starting row
+			valid, capture = tryMove(b, color, row+2, col)
+
+			if valid && !capture {
+				possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row + 2, col}, Capture: true})
+			}
+		}
 	} else {
 		// move up (-)
 		valid, _ := tryMove(b, color, row-1, col)
@@ -249,6 +256,14 @@ func PawnMove(b *Board, row, col int) (possible []ValidMove) {
 
 		if valid && capture {
 			possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row - 1, col + 1}, Capture: true})
+		}
+
+		if row == 6 { // double move from starting row
+			valid, capture = tryMove(b, color, row-2, col)
+
+			if valid && !capture {
+				possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row - 2, col}, Capture: true})
+			}
 		}
 	}
 
