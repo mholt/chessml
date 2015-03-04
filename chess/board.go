@@ -55,9 +55,9 @@ type Coord struct {
 	Row, Col int
 }
 
-type Move struct {
+type ValidMove struct {
 	From, To Coord
-	Capture bool
+	Capture  bool
 }
 
 func (b *Board) Setup() {
@@ -155,40 +155,100 @@ func QueenMove(b *Board, row, col int) {
 	lineMove(b, row, col, 1, 1)   // down-right
 }
 
-func KnightMove(b *Board, row, col int) {
-	// TODO: check return values.
+func KnightMove(b *Board, row, col int) (possible []ValidMove) {
 	color := b.Spaces[row][col].Color
 
-	tryMove(b, color, row-2, col-1) // up-left
-	tryMove(b, color, row-2, col+1) // up-right
+	valid, capture := tryMove(b, color, row-2, col-1) // up-left
+	if valid {
+		possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row - 2, col - 1}, Capture: capture})
+	}
 
-	tryMove(b, color, row+2, col-1) // down-left
-	tryMove(b, color, row+2, col+1) // down-right
+	valid, capture = tryMove(b, color, row-2, col+1) // up-right
+	if valid {
+		possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row - 2, col + 1}, Capture: capture})
+	}
 
-	tryMove(b, color, row-1, col-2) // left-up
-	tryMove(b, color, row+1, col-2) // left-down
+	valid, capture = tryMove(b, color, row+2, col-1) // down-left
+	if valid {
+		possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row + 2, col - 1}, Capture: capture})
+	}
 
-	tryMove(b, color, row-1, col+2) // right-up
-	tryMove(b, color, row+1, col+2) // right-down
+	valid, capture = tryMove(b, color, row+2, col+1) // down-right
+	if valid {
+		possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row + 2, col + 1}, Capture: capture})
+	}
+
+	valid, capture = tryMove(b, color, row-1, col-2) // left-up
+	if valid {
+		possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row - 1, col - 2}, Capture: capture})
+	}
+
+	valid, capture = tryMove(b, color, row+1, col-2) // left-down
+	if valid {
+		possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row + 1, col - 2}, Capture: capture})
+	}
+
+	valid, capture = tryMove(b, color, row-1, col+2) // right-up
+	if valid {
+		possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row - 1, col + 2}, Capture: capture})
+	}
+
+	valid, capture = tryMove(b, color, row+1, col+2) // right-down
+	if valid {
+		possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row + 1, col + 2}, Capture: capture})
+	}
+
+	return
 }
 
-func KingMove(b *Board, row, col int) {
-	// TODO: check return values.
+func KingMove(b *Board, row, col int) (possible []ValidMove) {
 	color := b.Spaces[row][col].Color
 
-	tryMove(b, color, row-1, col) // up
-	tryMove(b, color, row+1, col) // down
-	tryMove(b, color, row, col-1) // left
-	tryMove(b, color, row, col+1) // right
+	valid, capture := tryMove(b, color, row-1, col) // up
+	if valid {
+		possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row - 1, col}, Capture: capture})
+	}
 
-	tryMove(b, color, row-1, col-1) // up-left
-	tryMove(b, color, row-1, col+1) // up-right
-	tryMove(b, color, row+1, col-1) // down-left
-	tryMove(b, color, row+1, col+1) // down-right
+	valid, capture = tryMove(b, color, row+1, col) // down
+	if valid {
+		possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row + 1, col}, Capture: capture})
+	}
+
+	valid, capture = tryMove(b, color, row, col-1) // left
+	if valid {
+		possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row, col - 1}, Capture: capture})
+	}
+
+	valid, capture = tryMove(b, color, row, col+1) // right
+	if valid {
+		possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row, col + 1}, Capture: capture})
+	}
+
+	valid, capture = tryMove(b, color, row-1, col-1) // up-left
+	if valid {
+		possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row - 1, col - 1}, Capture: capture})
+	}
+
+	valid, capture = tryMove(b, color, row-1, col+1) // up-right
+	if valid {
+		possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row - 1, col + 1}, Capture: capture})
+	}
+
+	valid, capture = tryMove(b, color, row+1, col-1) // down-left
+	if valid {
+		possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row + 1, col - 1}, Capture: capture})
+	}
+
+	valid, capture = tryMove(b, color, row+1, col+1) // down-right
+	if valid {
+		possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row + 1, col + 1}, Capture: capture})
+	}
+
+	return
 }
 
-func PawnMove(b *Board, row, col int) (possible []Move) {
-	// TODO: check return values.
+func PawnMove(b *Board, row, col int) (possible []ValidMove) {
+	// TODO: allow double moves from starting rows.
 	color := b.Spaces[row][col].Color
 
 	if color == WhiteTeam {
@@ -196,40 +256,42 @@ func PawnMove(b *Board, row, col int) (possible []Move) {
 		valid, _ := tryMove(b, color, row+1, col)
 
 		if valid {
-			possible = append(possible, Move{To: Coord{row, col}, From: Coord{row+1, col}, Capture: false)
+			possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row + 1, col}, Capture: false})
 		}
 
 		valid, capture := tryMove(b, color, row+1, col-1) // left capture
 
 		if valid && capture {
-			possible = append(possible, Move{To: Coord{row, col}, From: Coord{row+1, col-1}, Capture: true)
+			possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row + 1, col - 1}, Capture: true})
 		}
 
 		valid, capture = tryMove(b, color, row+1, col+1) // right capture
 
 		if valid && capture {
-			possible = append(possible, Move{To: Coord{row, col}, From: Coord{row+1, col+1}, Capture: true)
+			possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row + 1, col + 1}, Capture: true})
 		}
 	} else {
 		// move up (-)
 		valid, _ := tryMove(b, color, row-1, col)
 
 		if valid {
-			possible = append(possible, Move{To: Coord{row, col}, From: Coord{row-1, col}, Capture: false})
+			possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row - 1, col}, Capture: false})
 		}
 
 		valid, capture := tryMove(b, color, row-1, col-1) // left capture
 
 		if valid && capture {
-			possible = append(possible, Move{To: Coord{row, col}, From: Coord{row-1, col-1}, Capture: true})
+			possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row - 1, col - 1}, Capture: true})
 		}
 
 		valid, capture = tryMove(b, color, row-1, col+1) // right capture
 
 		if valid && capture {
-			possible = append(possible, Move{To: Coord{row, col}, From: Coord{row-1, col+1}, Capture: true})
+			possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row - 1, col + 1}, Capture: true})
 		}
 	}
+
+	return
 }
 
 func tryMove(b *Board, pieceColor Color, row, col int) (valid, capture bool) {
