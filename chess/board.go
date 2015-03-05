@@ -5,61 +5,12 @@ import (
 	"fmt"
 )
 
-type Color int
-
-const (
-	WhiteTeam Color = iota
-	BlackTeam
-)
-
-type Rank int
-
-const (
-	Empty Rank = iota
-	King
-	Queen
-	Bishop
-	Knight
-	Rook
-	Pawn
-)
-
-type Piece struct {
-	Color
-	Rank
-}
-
-const Size = 8
-
-var RankToSymbol map[Rank]string = map[Rank]string{
-	Empty:  " ",
-	King:   "K",
-	Queen:  "Q",
-	Bishop: "B",
-	Knight: "N",
-	Rook:   "R",
-	Pawn:   "P",
-}
-
-var ColorToSymbol map[Color]string = map[Color]string{
-	WhiteTeam: "W",
-	BlackTeam: "B",
-}
-
 // A Board represents a chess board.
 type Board struct {
 	Spaces [Size][Size]Piece
 }
 
-type Coord struct {
-	Row, Col int
-}
-
-type ValidMove struct {
-	From, To Coord
-	Capture  bool
-}
-
+// Setup resets the board state, placing pieces in their initial positions.
 func (b *Board) Setup() {
 	// Wipe everything off.
 	for c := 0; c < Size; c++ {
@@ -109,6 +60,7 @@ func (b *Board) Setup() {
 	b.Spaces[7][7].Rank = Rook
 }
 
+// String creates a string representation of the current state of the board.
 func (b Board) String() string {
 	var buffer bytes.Buffer
 
@@ -130,183 +82,56 @@ func (b Board) String() string {
 	return buffer.String()
 }
 
-func RookMove(b *Board, row, col int) (possible []ValidMove) {
-	possible = extend(possible, lineMove(b, row, col, -1, 0)) // up
-	possible = extend(possible, lineMove(b, row, col, 1, 0))  // down
-	possible = extend(possible, lineMove(b, row, col, 0, -1)) // left
-	possible = extend(possible, lineMove(b, row, col, 0, 1))  // right
+type (
+	// Color represents white or black
+	Color int
 
-	return
-}
+	// Rank represents a kind of piece (King, Pawn, etc...)
+	Rank int
 
-func BishopMove(b *Board, row, col int) (possible []ValidMove) {
-	possible = extend(possible, lineMove(b, row, col, -1, -1)) // up-left
-	possible = extend(possible, lineMove(b, row, col, -1, 1))  // up-right
-	possible = extend(possible, lineMove(b, row, col, 1, -1))  // down-left
-	possible = extend(possible, lineMove(b, row, col, 1, 1))   // down-right
-
-	return
-}
-
-func QueenMove(b *Board, row, col int) (possible []ValidMove) {
-	possible = extend(possible, lineMove(b, row, col, -1, 0))  // up
-	possible = extend(possible, lineMove(b, row, col, 1, 0))   // down
-	possible = extend(possible, lineMove(b, row, col, 0, -1))  // left
-	possible = extend(possible, lineMove(b, row, col, 0, 1))   // right
-	possible = extend(possible, lineMove(b, row, col, -1, -1)) // up-left
-	possible = extend(possible, lineMove(b, row, col, -1, 1))  // up-right
-	possible = extend(possible, lineMove(b, row, col, 1, -1))  // down-left
-	possible = extend(possible, lineMove(b, row, col, 1, 1))   // down-right
-
-	return
-}
-
-func extend(vm, toAdd []ValidMove) []ValidMove {
-	for _, ta := range toAdd {
-		vm = append(vm, ta)
+	// Piece is a piece on the board
+	Piece struct {
+		Color
+		Rank
 	}
 
-	return vm
-}
+	// Coord is a chessboard coordinate.
+	Coord struct {
+		Row, Col int
+	}
+)
 
-func KnightMove(b *Board, row, col int) (possible []ValidMove) {
-	possible = tryAndAppend(possible, b, row, col, -2, -1) // up-left
-	possible = tryAndAppend(possible, b, row, col, -2, 1)  // up-right
-	possible = tryAndAppend(possible, b, row, col, 2, -1)  // down-left
-	possible = tryAndAppend(possible, b, row, col, 2, 1)   // down-right
+const (
+	WhiteTeam Color = iota
+	BlackTeam
+)
 
-	possible = tryAndAppend(possible, b, row, col, -1, -2) // left-up
-	possible = tryAndAppend(possible, b, row, col, 1, -2)  // left-down
-	possible = tryAndAppend(possible, b, row, col, -1, 2)  // right-up
-	possible = tryAndAppend(possible, b, row, col, 1, 2)   // right-down
+const (
+	Empty Rank = iota
+	King
+	Queen
+	Bishop
+	Knight
+	Rook
+	Pawn
+)
 
-	return
-}
+// Number of spaces in one direction
+const Size = 8
 
-func KingMove(b *Board, row, col int) (possible []ValidMove) {
-	possible = tryAndAppend(possible, b, row, col, -1, 0) // up
-	possible = tryAndAppend(possible, b, row, col, 1, 0)  // down
-	possible = tryAndAppend(possible, b, row, col, 0, -1) // left
-	possible = tryAndAppend(possible, b, row, col, 0, 1)  // right
-
-	possible = tryAndAppend(possible, b, row, col, -1, -1) // up-left
-	possible = tryAndAppend(possible, b, row, col, -1, 1)  // up-right
-	possible = tryAndAppend(possible, b, row, col, 1, -1)  // down-left
-	possible = tryAndAppend(possible, b, row, col, 1, 1)   // down-right
-
-	return
-}
-
-func tryAndAppend(vm []ValidMove, b *Board, row, col, rowDiff, colDiff int) []ValidMove {
-	color := b.Spaces[row][col].Color
-
-	valid, capture := tryMove(b, color, row+rowDiff, col+colDiff) // down-right
-	if valid {
-		return append(vm, ValidMove{To: Coord{row, col}, From: Coord{row + 1, col + 1}, Capture: capture})
+var (
+	RankToSymbol map[Rank]string = map[Rank]string{
+		Empty:  " ",
+		King:   "K",
+		Queen:  "Q",
+		Bishop: "B",
+		Knight: "N",
+		Rook:   "R",
+		Pawn:   "P",
 	}
 
-	return vm
-}
-
-func PawnMove(b *Board, row, col int) (possible []ValidMove) {
-	color := b.Spaces[row][col].Color
-
-	if color == WhiteTeam {
-		// move down (+)
-		valid, _ := tryMove(b, color, row+1, col)
-
-		if valid {
-			possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row + 1, col}, Capture: false})
-		}
-
-		valid, capture := tryMove(b, color, row+1, col-1) // left capture
-
-		if valid && capture {
-			possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row + 1, col - 1}, Capture: true})
-		}
-
-		valid, capture = tryMove(b, color, row+1, col+1) // right capture
-
-		if valid && capture {
-			possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row + 1, col + 1}, Capture: true})
-		}
-
-		if row == 1 { // double move from starting row
-			valid, capture = tryMove(b, color, row+2, col)
-
-			if valid && !capture {
-				possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row + 2, col}, Capture: true})
-			}
-		}
-	} else {
-		// move up (-)
-		valid, _ := tryMove(b, color, row-1, col)
-
-		if valid {
-			possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row - 1, col}, Capture: false})
-		}
-
-		valid, capture := tryMove(b, color, row-1, col-1) // left capture
-
-		if valid && capture {
-			possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row - 1, col - 1}, Capture: true})
-		}
-
-		valid, capture = tryMove(b, color, row-1, col+1) // right capture
-
-		if valid && capture {
-			possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row - 1, col + 1}, Capture: true})
-		}
-
-		if row == 6 { // double move from starting row
-			valid, capture = tryMove(b, color, row-2, col)
-
-			if valid && !capture {
-				possible = append(possible, ValidMove{To: Coord{row, col}, From: Coord{row - 2, col}, Capture: true})
-			}
-		}
+	ColorToSymbol map[Color]string = map[Color]string{
+		WhiteTeam: "W",
+		BlackTeam: "B",
 	}
-
-	return
-}
-
-func tryMove(b *Board, pieceColor Color, row, col int) (valid, capture bool) {
-	if row < 0 || row >= Size || col < 0 || col >= Size {
-		return false, false
-	}
-
-	target := b.Spaces[row][col]
-
-	if target.Rank == Empty {
-		// Valid move to empty square.
-		return true, false
-	} else if target.Color != pieceColor {
-		// Enemy Piece captured.
-		return true, true
-	}
-
-	return false, false
-}
-
-func lineMove(b *Board, row, col, rowDiff, colDiff int) (possible []ValidMove) {
-	color := b.Spaces[row][col].Color
-	toRow, toCol := row, col
-
-	for {
-		toRow += rowDiff
-		toCol += colDiff
-
-		valid, capture := tryMove(b, color, toRow, toCol)
-
-		if !valid {
-			break
-		} else if capture {
-			possible = append(possible, ValidMove{From: Coord{row, col}, To: Coord{toRow, toCol}, Capture: capture})
-			break
-		}
-
-		possible = append(possible, ValidMove{From: Coord{row, col}, To: Coord{toRow, toCol}, Capture: capture})
-	}
-
-	return
-}
+)
