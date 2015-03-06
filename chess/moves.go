@@ -207,8 +207,8 @@ func tryAndAppend(vm []ValidMove, b Board, row, col, rowDiff, colDiff int) []Val
 	valid, capture := tryMove(b, color, row+rowDiff, col+colDiff) // down-right
 	if valid {
 		return append(vm, ValidMove{
-			To:      Coord{row, col},
-			From:    Coord{row + 1, col + 1},
+			From:    Coord{row, col},
+			To:      Coord{row + rowDiff, col + colDiff},
 			Capture: capture,
 		})
 	}

@@ -195,11 +195,13 @@ type (
 	}
 )
 
+// Player colors
 const (
 	WhiteTeam Color = iota
 	BlackTeam
 )
 
+// Values that represent different kinds of pieces
 const (
 	Empty Rank = iota
 	King
@@ -214,17 +216,30 @@ const (
 const Size = 8
 
 var (
-	RankToSymbol map[Rank]string = map[Rank]string{
+	// Map of rank (kind of piece) to algabraic symbol
+	RankToSymbol = map[Rank]string{
 		Empty:  " ",
 		King:   "K",
 		Queen:  "Q",
 		Bishop: "B",
 		Knight: "N",
 		Rook:   "R",
-		Pawn:   "P",
+		Pawn:   "",
 	}
 
-	ColorToSymbol map[Color]string = map[Color]string{
+	// The reverse of RankToSymbol
+	SymbolToRank = map[string]Rank{
+		" ": Empty,
+		"K": King,
+		"Q": Queen,
+		"B": Bishop,
+		"N": Knight,
+		"R": Rook,
+		"":  Pawn,
+	}
+
+	// Map of color to its string representation
+	ColorToSymbol = map[Color]string{
 		WhiteTeam: "W",
 		BlackTeam: "B",
 	}

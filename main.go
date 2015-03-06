@@ -27,7 +27,7 @@ func main() {
 	game := games[0]
 
 	fmt.Println("Playing some moves")
-	err = game.Execute(2)
+	err = game.Execute(7)
 	if err != nil {
 		log.Fatal(err)
 	}

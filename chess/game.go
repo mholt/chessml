@@ -38,9 +38,8 @@ func (g *Game) move(m Move) error {
 	// Movetext comes in a variety of forms...
 
 	if len(m.Text) == 2 {
-		// Movetext has only the destination spot
-		// This should happen only when a single piece is capable of moving there,
-		// and there is no capture.
+		// Movetext has only the destination spot; it is a pawn movement
+		// EXAMPLES: e4, e6, b5
 
 		coord := NotationToCoord(m.Text)
 
@@ -48,7 +47,7 @@ func (g *Game) move(m Move) error {
 		for rank := 0; rank < Size && !movedPiece; rank++ {
 			for file := 0; file < Size && !movedPiece; file++ {
 				piece := g.Board.Spaces[rank][file]
-				if piece.Rank == Empty || piece.Color != m.PlayerColor {
+				if piece.Rank != Pawn || piece.Color != m.PlayerColor {
 					continue
 				}
 
@@ -67,6 +66,40 @@ func (g *Game) move(m Move) error {
 			}
 		}
 
+		return nil
+	}
+
+	if len(m.Text) == 3 {
+		// Movetext indicates piece being moved; not a pawn
+		// EXAMPLES: Nd2, Nc6, Kb1, Qc2
+
+		symbol := m.Text[:1]
+		coord := NotationToCoord(m.Text[1:])
+
+		// Look for a piece of that type that can move there
+		var movedPiece bool
+		for rank := 0; rank < Size && !movedPiece; rank++ {
+			for file := 0; file < Size && !movedPiece; file++ {
+				piece := g.Board.Spaces[rank][file]
+				if piece.Rank != SymbolToRank[symbol] || piece.Color != m.PlayerColor {
+					continue
+				}
+
+				// TODO: This is the same as above; perhaps should be its own function
+				possible := PossibleMoves(g.Board, piece, rank, file)
+				for _, possMove := range possible {
+					if possMove.To.Row == coord.Row && possMove.To.Col == coord.Col {
+						err := g.Board.MovePiece(Coord{rank, file}, possMove.To)
+						if err != nil {
+							return err
+						}
+						movedPiece = true
+						break
+					}
+				}
+
+			}
+		}
 	}
 
 	return nil
