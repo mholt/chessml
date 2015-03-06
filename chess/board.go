@@ -64,22 +64,74 @@ func (b *Board) Setup() {
 func (b Board) String() string {
 	var buffer bytes.Buffer
 
-	buffer.WriteString("+----+----+----+----+----+----+----+----+\n")
-	for r := 0; r < Size; r++ {
+	buffer.WriteString("    A    B    C    D    E    F    G    H   \n")
+	buffer.WriteString("  ╔════╤════╤════╤════╤════╤════╤════╤════╗\n")
+	for r := Size - 1; r >= 0; r-- {
+		buffer.WriteString(fmt.Sprintf("%d ", r+1))
+
 		for c := 0; c < Size; c++ {
 			piece := b.Spaces[r][c]
+			vertical := "│"
+			if c == 0 {
+				vertical = "║"
+			}
 
 			if piece.Rank == Empty {
-				buffer.WriteString("|    ")
+				buffer.WriteString(vertical + "    ")
 			} else {
-				buffer.WriteString(fmt.Sprintf("| %s%s ", ColorToSymbol[piece.Color], RankToSymbol[piece.Rank]))
+				buffer.WriteString(fmt.Sprintf("%s %s  ", vertical, PieceSymbol(piece)))
 			}
 		}
 
-		buffer.WriteString("|\n+----+----+----+----+----+----+----+----+\n")
-	}
+		buffer.WriteString(fmt.Sprintf("║ %d\n", r+1))
 
+		if r > 0 {
+			buffer.WriteString("  ╟────┼────┼────┼────┼────┼────┼────┼────╢\n")
+		} else {
+			buffer.WriteString("  ╚════╧════╧════╧════╧════╧════╧════╧════╝\n")
+		}
+	}
+	buffer.WriteString("    A    B    C    D    E    F    G    H   \n")
 	return buffer.String()
+}
+
+func PieceSymbol(p Piece) string {
+	if p.Color == WhiteTeam {
+		switch p.Rank {
+		case King:
+			return "♔"
+		case Queen:
+			return "♕"
+		case Bishop:
+			return "♗"
+		case Knight:
+			return "♘"
+		case Rook:
+			return "♖"
+		case Pawn:
+			return "♙"
+		default:
+			return "◯"
+		}
+	} else if p.Color == BlackTeam {
+		switch p.Rank {
+		case King:
+			return "♚"
+		case Queen:
+			return "♛"
+		case Bishop:
+			return "♝"
+		case Knight:
+			return "♞"
+		case Rook:
+			return "♜"
+		case Pawn:
+			return "♟"
+		default:
+			return "⬤"
+		}
+	}
+	return "?"
 }
 
 type (
