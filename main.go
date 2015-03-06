@@ -2,11 +2,10 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/mholt/chessml/pgn"
-
-	"github.com/mholt/chessml/chess"
 )
 
 func main() {
@@ -17,19 +16,21 @@ func main() {
 		panic(err)
 	}
 
-	g, err := pgn.Parse(f)
+	games, err := pgn.Parse(f)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	fmt.Printf("%d games loaded!\n", len(g))
+	fmt.Printf("%d games loaded\n", len(games))
 
-	var board chess.Board
-	board.Setup()
+	game := games[0]
 
-	fmt.Print(board)
+	fmt.Println("Playing some moves")
+	err = game.Execute(2)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	moves := chess.RookMoves(&board, 4, 4)
-	fmt.Printf("moves: %d\n", len(moves))
+	fmt.Print(game.Board)
 }

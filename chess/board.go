@@ -2,7 +2,9 @@ package chess
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
+	"strings"
 )
 
 // A Board represents a chess board.
@@ -20,44 +22,42 @@ func (b *Board) Setup() {
 		}
 	}
 
-	// Place all of the Pawns.
-	for c := 0; c < Size; c++ {
-		b.Spaces[1][c].Rank = Pawn
-
-		b.Spaces[6][c].Rank = Pawn
-		b.Spaces[6][c].Color = BlackTeam
+	placePiece := func(rank, file int, piece Rank, team Color) {
+		b.Spaces[rank][file].Rank = piece
+		b.Spaces[rank][file].Color = team
 	}
 
+	// Place all of the Pawns.
 	for c := 0; c < Size; c++ {
-		b.Spaces[6][c].Color = BlackTeam
-		b.Spaces[7][c].Color = BlackTeam
+		placePiece(1, c, Pawn, WhiteTeam)
+		placePiece(6, c, Pawn, BlackTeam)
 	}
 
 	// Place the Kings.
-	b.Spaces[0][4].Rank = King
-	b.Spaces[7][4].Rank = King
+	placePiece(0, 4, King, WhiteTeam)
+	placePiece(7, 4, King, BlackTeam)
 
 	// Place the Queens.
-	b.Spaces[0][3].Rank = Queen
-	b.Spaces[7][3].Rank = Queen
+	placePiece(0, 3, Queen, WhiteTeam)
+	placePiece(7, 3, Queen, BlackTeam)
 
 	// Place the Bishops.
-	b.Spaces[0][5].Rank = Bishop
-	b.Spaces[0][2].Rank = Bishop
-	b.Spaces[7][5].Rank = Bishop
-	b.Spaces[7][2].Rank = Bishop
+	placePiece(0, 5, Bishop, WhiteTeam)
+	placePiece(0, 2, Bishop, WhiteTeam)
+	placePiece(7, 5, Bishop, BlackTeam)
+	placePiece(7, 2, Bishop, BlackTeam)
 
 	// Place the Knights
-	b.Spaces[0][1].Rank = Knight
-	b.Spaces[0][6].Rank = Knight
-	b.Spaces[7][1].Rank = Knight
-	b.Spaces[7][6].Rank = Knight
+	placePiece(0, 1, Knight, WhiteTeam)
+	placePiece(0, 6, Knight, WhiteTeam)
+	placePiece(7, 1, Knight, BlackTeam)
+	placePiece(7, 6, Knight, BlackTeam)
 
 	// Place the Rooks
-	b.Spaces[0][0].Rank = Rook
-	b.Spaces[0][7].Rank = Rook
-	b.Spaces[7][0].Rank = Rook
-	b.Spaces[7][7].Rank = Rook
+	placePiece(0, 0, Rook, WhiteTeam)
+	placePiece(0, 7, Rook, WhiteTeam)
+	placePiece(7, 0, Rook, BlackTeam)
+	placePiece(7, 7, Rook, BlackTeam)
 }
 
 // String creates a string representation of the current state of the board.
@@ -95,6 +95,25 @@ func (b Board) String() string {
 	return buffer.String()
 }
 
+// MovePiece moves a piece. It performs captures by replacing
+// any existing piece on the to coordinate.
+func (b *Board) MovePiece(from, to Coord) error {
+	if from.Col < 0 || from.Col >= Size ||
+		to.Col < 0 || to.Col >= Size {
+		return errors.New("Coordinate out of bounds")
+	}
+
+	if b.Spaces[from.Row][from.Col].Rank == Empty {
+		return fmt.Errorf("No piece to move at row,col (%d,%d)", from.Row, from.Col)
+	}
+
+	b.Spaces[to.Row][to.Col] = b.Spaces[from.Row][from.Col]
+	b.Spaces[from.Row][from.Col].Rank = Empty
+
+	return nil
+}
+
+// PieceSymbol returns the unicode chess symbol for p.
 func PieceSymbol(p Piece) string {
 	if p.Color == WhiteTeam {
 		switch p.Rank {
@@ -132,6 +151,29 @@ func PieceSymbol(p Piece) string {
 		}
 	}
 	return "?"
+}
+
+// NotationToCoord takes a two-character algebraic notation
+// like "E4" and converts it to a coordinate.
+func NotationToCoord(algebra string) Coord {
+	if len(algebra) != 2 {
+		panic("Algebraic notation must be 2 characters precisely; got: '" + algebra + "'")
+	}
+	algebra = strings.ToUpper(algebra)
+
+	var c Coord
+	file := algebra[0]
+	rank := algebra[1]
+
+	// Remember, these are ASCII code points, not numbers
+	if file < 65 || file > 72 || rank < 48 || rank > 57 {
+		panic("Bad position (" + algebra + ")")
+	}
+
+	c.Row = int(rank - 48 - 1)
+	c.Col = int(file - 65)
+
+	return c
 }
 
 type (

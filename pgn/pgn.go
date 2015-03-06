@@ -28,6 +28,7 @@ func Parse(input io.Reader) (games []chess.Game, err error) {
 			break
 		}
 
+		game.Board.Setup()
 		games = append(games, game)
 	}
 

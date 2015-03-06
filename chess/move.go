@@ -3,8 +3,9 @@ package chess
 // A Move represents a move by a single player in
 // a chess game.
 type Move struct {
-	Player string
-	Text   string
+	Player      string
+	PlayerColor Color
+	Text        string
 }
 
 const (

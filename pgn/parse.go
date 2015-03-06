@@ -247,8 +247,9 @@ func (gp *gameParser) parseTurn() (bool, error) {
 
 	// Save white's move
 	gp.game.Moves = append(gp.game.Moves, chess.Move{
-		Player: chess.White,
-		Text:   whiteMove,
+		Player:      chess.White,
+		PlayerColor: chess.WhiteTeam,
+		Text:        whiteMove,
 	})
 
 	// There is always at least one move in a turn, so we
@@ -267,8 +268,9 @@ func (gp *gameParser) parseTurn() (bool, error) {
 
 	// Save black's move
 	gp.game.Moves = append(gp.game.Moves, chess.Move{
-		Player: chess.Black,
-		Text:   blackMove,
+		Player:      chess.Black,
+		PlayerColor: chess.BlackTeam,
+		Text:        blackMove,
 	})
 
 	// This file format is terrible. There might even be a third
