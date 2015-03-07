@@ -22,9 +22,9 @@ func (b *Board) Setup() {
 		}
 	}
 
-	placePiece := func(rank, file int, piece Rank, team Color) {
-		b.Spaces[rank][file].Rank = piece
-		b.Spaces[rank][file].Color = team
+	placePiece := func(row, col int, piece Rank, team Color) {
+		b.Spaces[row][col].Rank = piece
+		b.Spaces[row][col].Color = team
 	}
 
 	// Place all of the Pawns.
@@ -98,8 +98,7 @@ func (b Board) String() string {
 // MovePiece moves a piece. It performs captures by replacing
 // any existing piece on the to coordinate.
 func (b *Board) MovePiece(from, to Coord) error {
-	if from.Col < 0 || from.Col >= Size ||
-		to.Col < 0 || to.Col >= Size {
+	if from.Col < 0 || from.Col >= Size || to.Col < 0 || to.Col >= Size {
 		return errors.New("Coordinate out of bounds")
 	}
 
@@ -197,7 +196,8 @@ type (
 
 // Player colors
 const (
-	WhiteTeam Color = iota
+	NoColor Color = iota
+	WhiteTeam
 	BlackTeam
 )
 
@@ -243,4 +243,10 @@ var (
 		WhiteTeam: "W",
 		BlackTeam: "B",
 	}
+
+	// Converts rank strings (1-8) to row index (0-7)
+	rankToRow = map[string]int{"1": 0, "2": 1, "3": 2, "4": 3, "5": 4, "6": 5, "7": 6, "8": 7}
+
+	// Converts file strings (a-f) to col index (0-7) - case-sensitive!
+	fileToCol = map[string]int{"a": 0, "b": 1, "c": 2, "d": 3, "e": 4, "f": 5, "g": 6, "h": 7}
 )

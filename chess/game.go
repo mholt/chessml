@@ -1,6 +1,9 @@
 package chess
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 // A Game represents a chess game.
 type Game struct {
@@ -26,7 +29,7 @@ func (g *Game) Execute(n int) error {
 		move := g.Moves[g.moveIdx]
 		err := g.move(move)
 		if err != nil {
-			return fmt.Errorf("Move %d (%s - %s): %s", g.moveIdx, move.Player, move.Text, err)
+			return fmt.Errorf("Move %d (%s) (%s's turn): %s", g.moveIdx, move.Text, move.Player, err)
 		}
 		g.moveIdx++
 	}
@@ -34,73 +37,98 @@ func (g *Game) Execute(n int) error {
 	return nil
 }
 
+// move executes the move m.
 func (g *Game) move(m Move) error {
-	// Movetext comes in a variety of forms...
+	pm, err := m.Parse()
+	if err != nil {
+		return err
+	}
 
-	if len(m.Text) == 2 {
-		// Movetext has only the destination spot; it is a pawn movement
-		// EXAMPLES: e4, e6, b5
+	// Find the piece that can satisfy the move
+	_, row, col, found := g.findPiece(pm)
+	if !found {
+		fmt.Println(g.Board)
+		fmt.Printf("Parsed Move: %#v\n", pm)
+		return errors.New("Couldn't find any piece to satisfy the move '" + m.Text + "'")
+	}
 
-		coord := NotationToCoord(m.Text)
+	// Departure coordinate
+	from := Coord{Row: row, Col: col}
 
-		var movedPiece bool
-		for rank := 0; rank < Size && !movedPiece; rank++ {
-			for file := 0; file < Size && !movedPiece; file++ {
-				piece := g.Board.Spaces[rank][file]
-				if piece.Rank != Pawn || piece.Color != m.PlayerColor {
-					continue
-				}
-
-				possible := PossibleMoves(g.Board, piece, rank, file)
-				for _, possMove := range possible {
-					if possMove.To.Row == coord.Row && possMove.To.Col == coord.Col {
-						err := g.Board.MovePiece(Coord{rank, file}, possMove.To)
-						if err != nil {
-							return err
-						}
-						movedPiece = true
-						break
-					}
-				}
-
-			}
-		}
-
+	// Handle castles a little differently
+	if pm.Castle == KingsideCastle {
+		g.Board.MovePiece(from, Coord{Row: row, Col: col + 2})              // King
+		g.Board.MovePiece(Coord{Row: row, Col: 7}, Coord{Row: row, Col: 5}) // Rook
+		return nil
+	} else if pm.Castle == QueensideCastle {
+		g.Board.MovePiece(from, Coord{Row: row, Col: col - 2})              // King
+		g.Board.MovePiece(Coord{Row: row, Col: 0}, Coord{Row: row, Col: 3}) // Rook
 		return nil
 	}
 
-	if len(m.Text) == 3 {
-		// Movetext indicates piece being moved; not a pawn
-		// EXAMPLES: Nd2, Nc6, Kb1, Qc2
+	// Destination coordinate
+	to := NotationToCoord(pm.Destination)
 
-		symbol := m.Text[:1]
-		coord := NotationToCoord(m.Text[1:])
+	// Execute the move
+	err = g.Board.MovePiece(from, to)
+	if err != nil {
+		return err
+	}
 
-		// Look for a piece of that type that can move there
-		var movedPiece bool
-		for rank := 0; rank < Size && !movedPiece; rank++ {
-			for file := 0; file < Size && !movedPiece; file++ {
-				piece := g.Board.Spaces[rank][file]
-				if piece.Rank != SymbolToRank[symbol] || piece.Color != m.PlayerColor {
-					continue
-				}
+	return nil
+}
 
-				// TODO: This is the same as above; perhaps should be its own function
-				possible := PossibleMoves(g.Board, piece, rank, file)
-				for _, possMove := range possible {
-					if possMove.To.Row == coord.Row && possMove.To.Col == coord.Col {
-						err := g.Board.MovePiece(Coord{rank, file}, possMove.To)
-						if err != nil {
-							return err
-						}
-						movedPiece = true
-						break
-					}
-				}
+// findPiece looks on the board to find a piece can satisfy the move
+// specified. It returns the first piece that satisfies the move;
+// there should only be one (otherwise the movetext was ambiguous).
+// This method only filters by criteria that are specified
+// (non-zero values). If the piece was found, it returns that piece
+// and its row,col position, and true. Otherwise, returns false.
+func (g *Game) findPiece(pm ParsedMove) (Piece, int, int, bool) {
+	departRow := rankToRow[pm.DepartureRank]
+	departCol := fileToCol[pm.DepartureFile]
+	destRow := rankToRow[pm.DestinationRank]
+	destCol := fileToCol[pm.DestinationFile]
 
+	for row := 0; row < Size; row++ {
+		if pm.DepartureRank != "" && row != departRow {
+			continue
+		}
+
+		for col := 0; col < Size; col++ {
+			if pm.DepartureFile != "" && col != departCol {
+				continue
+			}
+
+			piece := g.Board.Spaces[row][col]
+
+			if (pm.PieceType > 0 && piece.Rank != pm.PieceType) ||
+				piece.Rank == Empty || piece.Color != pm.Color {
+				continue
+			}
+
+			// Handle castling moves a little differently
+			// TODO: Check to make sure the castling is possible
+			if pm.Castle != "" {
+				return piece, row, col, true
+			}
+
+			if g.movePossible(piece, row, col, destRow, destCol) {
+				return piece, row, col, true
 			}
 		}
 	}
 
-	return nil
+	return Piece{}, -1, -1, false
+}
+
+// movePossible returns whether piece can move from row,col to destRow,destCol.
+func (g *Game) movePossible(piece Piece, row, col, destRow, destCol int) bool {
+	possible := PossibleMoves(g.Board, piece, row, col)
+	for _, move := range possible {
+		if move.To.Row == destRow && move.To.Col == destCol {
+			return true
+		}
+	}
+	return false
 }

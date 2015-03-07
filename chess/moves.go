@@ -1,24 +1,26 @@
 package chess
 
-// PossibleMoves determines the type of piece and returns its possible moves.
-func PossibleMoves(b Board, p Piece, rank, file int) []ValidMove {
+import "fmt"
+
+// PossibleMoves returns the possible moves of piece p from
+// the position row,col.
+func PossibleMoves(b Board, p Piece, row, col int) []ValidMove {
 	switch p.Rank {
 	case King:
-		return KingMoves(b, rank, file)
+		return KingMoves(b, row, col)
 	case Queen:
-		return QueenMoves(b, rank, file)
+		return QueenMoves(b, row, col)
 	case Bishop:
-		return BishopMoves(b, rank, file)
+		return BishopMoves(b, row, col)
 	case Knight:
-		return KnightMoves(b, rank, file)
+		return KnightMoves(b, row, col)
 	case Rook:
-		return RookMoves(b, rank, file)
+		return RookMoves(b, row, col)
 	case Pawn:
-		return PawnMoves(b, rank, file)
+		return PawnMoves(b, row, col)
 	default:
-		panic("Invalid piece: bad rank")
+		panic(fmt.Sprintf("Invalid piece: bad Rank value %d", p.Rank))
 	}
-	return []ValidMove{}
 }
 
 // RookMoves computes possible moves for a rook on board b at the row and col position.
@@ -90,7 +92,7 @@ func PawnMoves(b Board, row, col int) (possible []ValidMove) {
 	color := b.Spaces[row][col].Color
 
 	if color == WhiteTeam {
-		// move down (+)
+		// move up (+)
 		valid, _ := tryMove(b, color, row+1, col)
 
 		if valid {
@@ -117,7 +119,7 @@ func PawnMoves(b Board, row, col int) (possible []ValidMove) {
 			}
 		}
 	} else {
-		// move up (-)
+		// move down (-)
 		valid, _ := tryMove(b, color, row-1, col)
 
 		if valid {
@@ -204,7 +206,7 @@ func lineMove(b Board, row, col, rowDiff, colDiff int) (possible []ValidMove) {
 func tryAndAppend(vm []ValidMove, b Board, row, col, rowDiff, colDiff int) []ValidMove {
 	color := b.Spaces[row][col].Color
 
-	valid, capture := tryMove(b, color, row+rowDiff, col+colDiff) // down-right
+	valid, capture := tryMove(b, color, row+rowDiff, col+colDiff)
 	if valid {
 		return append(vm, ValidMove{
 			From:    Coord{row, col},

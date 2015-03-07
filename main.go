@@ -24,13 +24,20 @@ func main() {
 
 	fmt.Printf("%d games loaded\n", len(games))
 
-	game := games[0]
-
-	fmt.Println("Playing some moves")
-	err = game.Execute(7)
+	game := games[18] // In game 18, white's move on turn 46 'fxg6' is en passant
+	err = game.Execute(-1)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Print(game.Board)
+	/*
+		for i, game := range games {
+			fmt.Println("Playing game", i)
+			err = game.Execute(-1)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+		fmt.Println("Played all games!")
+	*/
 }
