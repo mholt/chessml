@@ -118,6 +118,9 @@ func PawnMoves(b Board, row, col int) (possible []ValidMove) {
 				possible = append(possible, ValidMove{From: Coord{row, col}, To: Coord{row + 2, col}, Capture: true})
 			}
 		}
+
+		// RYAN TODO: Detect if this white pawn can do en passant
+
 	} else {
 		// move down (-)
 		valid, _ := tryMove(b, color, row-1, col)
@@ -149,6 +152,9 @@ func PawnMoves(b Board, row, col int) (possible []ValidMove) {
 				})
 			}
 		}
+
+		// RYAN TODO: Detect if this black pawn can do en passant
+
 	}
 
 	return
