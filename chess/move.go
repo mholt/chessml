@@ -29,7 +29,7 @@ type ParsedMove struct {
 	Check           bool
 	Capture         bool
 	Castle          string // KingsideCastle or QueensideCastle
-	PawnPromotion   Rank   // what the pawn was promoted to
+	PawnPromotion   Rank   // what the pawn is promoted to
 	EnPassant       bool   // Note: Movetext may not specify this; might have to rely on game state
 }
 

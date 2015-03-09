@@ -109,17 +109,20 @@ func (b *Board) MovePiece(from, to Coord) error {
 	b.Spaces[to.Row][to.Col] = b.Spaces[from.Row][from.Col]
 	b.Spaces[from.Row][from.Col].Rank = Empty
 
+	// Reset the en passant flags for all pieces (pawns) of this color
 	for i := 0; i < Size; i++ {
 		for j := 0; j < Size; j++ {
-			b.Spaces[i][j].EnPassantable = false
+			if b.Spaces[i][j].Color == b.Spaces[to.Row][to.Col].Color {
+				b.Spaces[i][j].EnPassantable = false
+			}
 		}
 	}
 
-	piece := b.Spaces[to.Row][to.Col]
-	if piece.Rank == Pawn {
-		if to.Row-from.Row == 2 || to.Row-from.Row == -2 {
-			piece.EnPassantable = true
-		}
+	// If this piece is a pawn, see if the opponent could use
+	// en passant on their next turn and set the flag.
+	if b.Spaces[to.Row][to.Col].Rank == Pawn &&
+		(to.Row-from.Row == 2 || to.Row-from.Row == -2) {
+		b.Spaces[to.Row][to.Col].EnPassantable = true
 	}
 
 	return nil
