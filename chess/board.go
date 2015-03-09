@@ -111,7 +111,9 @@ func (b *Board) MovePiece(from, to Coord) error {
 
 	for i := 0; i < Size; i++ {
 		for j := 0; j < Size; j++ {
-			b.Spaces[i][j].EnPassantable = false
+			if b.Spaces[i][j].Color == b.Spaces[to.Row][to.Col].Color {
+				b.Spaces[i][j].EnPassantable = false
+			}
 		}
 	}
 
