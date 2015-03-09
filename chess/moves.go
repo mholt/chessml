@@ -119,7 +119,21 @@ func PawnMoves(b Board, row, col int) (possible []ValidMove) {
 			}
 		}
 
-		// RYAN TODO: Detect if this white pawn can do en passant
+		if col+1 < Size && b.Spaces[row][col+1].EnPassantable {
+			valid, capture = tryMove(b, color, row+1, col+1)
+
+			if valid && !capture {
+				possible = append(possible, ValidMove{From: Coord{row, col}, To: Coord{row + 1, col + 1}, EnPassant: true})
+			}
+		}
+
+		if col-1 >= 0 && b.Spaces[row][col-1].EnPassantable {
+			valid, capture = tryMove(b, color, row+1, col-1)
+
+			if valid && !capture {
+				possible = append(possible, ValidMove{From: Coord{row, col}, To: Coord{row + 1, col - 1}, EnPassant: true})
+			}
+		}
 
 	} else {
 		// move down (-)
@@ -153,7 +167,21 @@ func PawnMoves(b Board, row, col int) (possible []ValidMove) {
 			}
 		}
 
-		// RYAN TODO: Detect if this black pawn can do en passant
+		if col+1 < Size && b.Spaces[row][col+1].EnPassantable {
+			valid, capture = tryMove(b, color, row-1, col+1)
+
+			if valid && !capture {
+				possible = append(possible, ValidMove{From: Coord{row, col}, To: Coord{row + 1, col + 1}, EnPassant: true})
+			}
+		}
+
+		if col-1 >= 0 && b.Spaces[row][col-1].EnPassantable {
+			valid, capture = tryMove(b, color, row-1, col-1)
+
+			if valid && !capture {
+				possible = append(possible, ValidMove{From: Coord{row, col}, To: Coord{row + 1, col - 1}, EnPassant: true})
+			}
+		}
 
 	}
 
@@ -226,6 +254,7 @@ func tryAndAppend(vm []ValidMove, b Board, row, col, rowDiff, colDiff int) []Val
 
 // ValidMove represents a possible move that has not necessarily been made.
 type ValidMove struct {
-	From, To Coord
-	Capture  bool
+	From, To  Coord
+	Capture   bool
+	EnPassant bool
 }

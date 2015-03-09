@@ -109,6 +109,19 @@ func (b *Board) MovePiece(from, to Coord) error {
 	b.Spaces[to.Row][to.Col] = b.Spaces[from.Row][from.Col]
 	b.Spaces[from.Row][from.Col].Rank = Empty
 
+	for i := 0; i < Size; i++ {
+		for j := 0; j < Size; j++ {
+			b.Spaces[i][j].EnPassantable = false
+		}
+	}
+
+	piece := b.Spaces[to.Row][to.Col]
+	if piece.Rank == Pawn {
+		if to.Row-from.Row == 2 || to.Row-from.Row == -2 {
+			piece.EnPassantable = true
+		}
+	}
+
 	return nil
 }
 
@@ -184,6 +197,7 @@ type (
 
 	// Piece is a piece on the board
 	Piece struct {
+		EnPassantable bool
 		Color
 		Rank
 	}
