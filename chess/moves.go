@@ -93,43 +93,37 @@ func PawnMoves(b Board, row, col int) (possible []ValidMove) {
 
 	if color == WhiteTeam {
 		// move up (+)
-		valid, _ := tryMove(b, color, row+1, col)
-
-		if valid {
+		valid, capture := tryMove(b, color, row+1, col)
+		if valid && !capture {
 			possible = append(possible, ValidMove{From: Coord{row, col}, To: Coord{row + 1, col}, Capture: false})
 		}
 
-		valid, capture := tryMove(b, color, row+1, col-1) // left capture
-
+		valid, capture = tryMove(b, color, row+1, col-1) // left capture
 		if valid && capture {
 			possible = append(possible, ValidMove{From: Coord{row, col}, To: Coord{row + 1, col - 1}, Capture: true})
 		}
 
 		valid, capture = tryMove(b, color, row+1, col+1) // right capture
-
 		if valid && capture {
 			possible = append(possible, ValidMove{From: Coord{row, col}, To: Coord{row + 1, col + 1}, Capture: true})
 		}
 
 		if row == 1 { // double move from starting row
 			valid, capture = tryMove(b, color, row+2, col)
-
-			if valid && !capture {
+			if valid && !capture && b.Spaces[row+1][col].Rank == Empty {
 				possible = append(possible, ValidMove{From: Coord{row, col}, To: Coord{row + 2, col}, Capture: true})
 			}
 		}
 
-		if col+1 < Size && b.Spaces[row][col+1].EnPassantable {
+		if col+1 < Size && b.Spaces[row][col+1].Color != color && b.Spaces[row][col+1].EnPassantable {
 			valid, capture = tryMove(b, color, row+1, col+1)
-
 			if valid && !capture {
 				possible = append(possible, ValidMove{From: Coord{row, col}, To: Coord{row + 1, col + 1}, EnPassant: true})
 			}
 		}
 
-		if col-1 >= 0 && b.Spaces[row][col-1].EnPassantable {
+		if col-1 >= 0 && b.Spaces[row][col-1].Color != color && b.Spaces[row][col-1].EnPassantable {
 			valid, capture = tryMove(b, color, row+1, col-1)
-
 			if valid && !capture {
 				possible = append(possible, ValidMove{From: Coord{row, col}, To: Coord{row + 1, col - 1}, EnPassant: true})
 			}
@@ -137,28 +131,24 @@ func PawnMoves(b Board, row, col int) (possible []ValidMove) {
 
 	} else {
 		// move down (-)
-		valid, _ := tryMove(b, color, row-1, col)
-
-		if valid {
+		valid, capture := tryMove(b, color, row-1, col)
+		if valid && !capture {
 			possible = append(possible, ValidMove{From: Coord{row, col}, To: Coord{row - 1, col}, Capture: false})
 		}
 
-		valid, capture := tryMove(b, color, row-1, col-1) // left capture
-
+		valid, capture = tryMove(b, color, row-1, col-1) // left capture
 		if valid && capture {
 			possible = append(possible, ValidMove{From: Coord{row, col}, To: Coord{row - 1, col - 1}, Capture: true})
 		}
 
 		valid, capture = tryMove(b, color, row-1, col+1) // right capture
-
 		if valid && capture {
 			possible = append(possible, ValidMove{From: Coord{row, col}, To: Coord{row - 1, col + 1}, Capture: true})
 		}
 
 		if row == 6 { // double move from starting row
 			valid, capture = tryMove(b, color, row-2, col)
-
-			if valid && !capture {
+			if valid && !capture && b.Spaces[row-1][col].Rank == Empty {
 				possible = append(possible, ValidMove{
 					From:    Coord{row, col},
 					To:      Coord{row - 2, col},
@@ -167,19 +157,17 @@ func PawnMoves(b Board, row, col int) (possible []ValidMove) {
 			}
 		}
 
-		if col+1 < Size && b.Spaces[row][col+1].EnPassantable {
+		if col+1 < Size && b.Spaces[row][col+1].Color != color && b.Spaces[row][col+1].EnPassantable {
 			valid, capture = tryMove(b, color, row-1, col+1)
-
 			if valid && !capture {
-				possible = append(possible, ValidMove{From: Coord{row, col}, To: Coord{row + 1, col + 1}, EnPassant: true})
+				possible = append(possible, ValidMove{From: Coord{row, col}, To: Coord{row - 1, col + 1}, EnPassant: true})
 			}
 		}
 
-		if col-1 >= 0 && b.Spaces[row][col-1].EnPassantable {
+		if col-1 >= 0 && b.Spaces[row][col-1].Color != color && b.Spaces[row][col-1].EnPassantable {
 			valid, capture = tryMove(b, color, row-1, col-1)
-
 			if valid && !capture {
-				possible = append(possible, ValidMove{From: Coord{row, col}, To: Coord{row + 1, col - 1}, EnPassant: true})
+				possible = append(possible, ValidMove{From: Coord{row, col}, To: Coord{row - 1, col - 1}, EnPassant: true})
 			}
 		}
 
@@ -196,11 +184,9 @@ func tryMove(b Board, pieceColor Color, row, col int) (valid, capture bool) {
 	target := b.Spaces[row][col]
 
 	if target.Rank == Empty {
-		// Valid move to empty square.
-		return true, false
+		return true, false // Valid move to empty square.
 	} else if target.Color != pieceColor {
-		// Enemy Piece captured.
-		return true, true
+		return true, true // Valid move, and enemy piece would be captured.
 	}
 
 	return false, false

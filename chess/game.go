@@ -29,7 +29,7 @@ func (g *Game) Execute(n int) error {
 		move := g.Moves[g.moveIdx]
 		err := g.move(move)
 		if err != nil {
-			return fmt.Errorf("Move %d (%s) (%s's turn): %s", g.moveIdx, move.Text, move.Player, err)
+			return fmt.Errorf("Turn %d %s (%s) move %d - %s", g.moveIdx/2+1, move.Player, move.Text, g.moveIdx, err)
 		}
 		g.moveIdx++
 	}
@@ -75,6 +75,16 @@ func (g *Game) move(m Move) error {
 		return err
 	}
 
+	// If it was a pawn promotion, promote it!
+	if pm.PawnPromotion != Empty {
+		g.Board.Spaces[to.Row][to.Col].Rank = pm.PawnPromotion
+	}
+
+	// If it was en passant, remove the captured piece
+	if pm.EnPassant {
+		g.Board.Spaces[from.Row][to.Col].Rank = Empty
+	}
+
 	return nil
 }
 
@@ -84,7 +94,7 @@ func (g *Game) move(m Move) error {
 // This method only filters by criteria that are specified
 // (non-zero values). If the piece was found, it returns that piece
 // and its row,col position, and true. Otherwise, returns false.
-func (g *Game) findPiece(pm ParsedMove) (Piece, int, int, bool) {
+func (g *Game) findPiece(pm *ParsedMove) (Piece, int, int, bool) {
 	departRow := rankToRow[pm.DepartureRank]
 	departCol := fileToCol[pm.DepartureFile]
 	destRow := rankToRow[pm.DestinationRank]
@@ -108,12 +118,17 @@ func (g *Game) findPiece(pm ParsedMove) (Piece, int, int, bool) {
 			}
 
 			// Handle castling moves a little differently
-			// TODO: Check to make sure the castling is possible
+			// TODO: Check to make sure the castling is possible/allowed?
 			if pm.Castle != "" {
 				return piece, row, col, true
 			}
 
 			if g.movePossible(piece, row, col, destRow, destCol) {
+				// See if it's an en passant; the movetext probably won't specify
+				if piece.Rank == Pawn && g.Board.Spaces[destRow][destCol].Rank == Empty && pm.Capture {
+					pm.EnPassant = true
+				}
+
 				return piece, row, col, true
 			}
 		}
