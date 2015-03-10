@@ -27,24 +27,13 @@ func main() {
 
 	fmt.Printf("%d games loaded\n", len(games))
 
-	game := games[439]
-	fmt.Println(game.Tags)
-
-	err = game.Execute(-1)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println(game.Board)
-	/*
-		for i, game := range games {
-			fmt.Println("Playing game", i)
-			err = game.Execute(-1)
-			if err != nil {
-				log.Fatal(err)
-			}
+	for i, game := range games {
+		fmt.Println("Playing game", i)
+		err = game.Execute(-1)
+		if err != nil {
+			log.Fatal(err)
 		}
-		fmt.Println("Played all games!")
-	*/
+	}
+	fmt.Println("Played all games!")
 
 }

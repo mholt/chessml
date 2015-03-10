@@ -29,7 +29,7 @@ func (g *Game) Execute(n int) error {
 		move := g.Moves[g.moveIdx]
 		err := g.move(move)
 		if err != nil {
-			return fmt.Errorf("Turn %d %s (%s) move %d - %s", g.moveIdx/2+1, move.Player, move.Text, g.moveIdx, err)
+			return fmt.Errorf("Turn %d %s (%s) move %d - %s", g.moveIdx/2+int(move.PlayerColor)-1, move.Player, move.Text, g.moveIdx, err)
 		}
 		g.moveIdx++
 	}
@@ -124,16 +124,24 @@ func (g *Game) findPiece(pm *ParsedMove) (Piece, int, int, bool) {
 			}
 
 			if movePossible(g.Board, piece, row, col, destRow, destCol) {
+				// First, see if it's an en passant; the movetext probably won't specify
+				if piece.Rank == Pawn && g.Board.Spaces[destRow][destCol].Rank == Empty && pm.Capture {
+					pm.EnPassant = true
+				}
+
 				// First, make sure doing this move won't put the player in check
 				boardCopy := g.Board.copy()
 				boardCopy.MovePiece(Coord{Row: row, Col: col}, Coord{Row: destRow, Col: destCol})
-				if isCheck(boardCopy, pm.Color) {
-					continue // No-go; find another piece
+
+				// En passant doesn't directly replace the captured piece which, to our
+				// program, would not appear to remove the player out of check if they are
+				// in it; so we have to simulate that before the check for check...
+				if pm.EnPassant {
+					boardCopy.Spaces[row][destCol].Rank = Empty
 				}
 
-				// See if it's an en passant; the movetext probably won't specify
-				if piece.Rank == Pawn && g.Board.Spaces[destRow][destCol].Rank == Empty && pm.Capture {
-					pm.EnPassant = true
+				if isCheck(boardCopy, pm.Color) {
+					continue // Not allowed; find another piece
 				}
 
 				return piece, row, col, true
