@@ -70,7 +70,7 @@ func (g *Game) move(m Move) error {
 	to := NotationToCoord(pm.Destination)
 
 	// Execute the move
-	err = g.Board.MovePiece(from, to)
+	_, err = g.Board.MovePiece(from, to)
 	if err != nil {
 		return err
 	}
@@ -123,7 +123,14 @@ func (g *Game) findPiece(pm *ParsedMove) (Piece, int, int, bool) {
 				return piece, row, col, true
 			}
 
-			if g.movePossible(piece, row, col, destRow, destCol) {
+			if movePossible(g.Board, piece, row, col, destRow, destCol) {
+				// First, make sure doing this move won't put the player in check
+				boardCopy := g.Board.copy()
+				boardCopy.MovePiece(Coord{Row: row, Col: col}, Coord{Row: destRow, Col: destCol})
+				if isCheck(boardCopy, pm.Color) {
+					continue // No-go; find another piece
+				}
+
 				// See if it's an en passant; the movetext probably won't specify
 				if piece.Rank == Pawn && g.Board.Spaces[destRow][destCol].Rank == Empty && pm.Capture {
 					pm.EnPassant = true
@@ -135,15 +142,4 @@ func (g *Game) findPiece(pm *ParsedMove) (Piece, int, int, bool) {
 	}
 
 	return Piece{}, -1, -1, false
-}
-
-// movePossible returns whether piece can move from row,col to destRow,destCol.
-func (g *Game) movePossible(piece Piece, row, col, destRow, destCol int) bool {
-	possible := PossibleMoves(g.Board, piece, row, col)
-	for _, move := range possible {
-		if move.To.Row == destRow && move.To.Col == destCol {
-			return true
-		}
-	}
-	return false
 }

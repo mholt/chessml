@@ -43,6 +43,11 @@ func (m Move) Parse() (*ParsedMove, error) {
 		return nil, errors.New("Movetext too short")
 	}
 
+	if strings.HasSuffix(t, "+") {
+		pm.Check = true
+		t = t[:len(t)-1]
+	}
+
 	if t == "O-O" || t == "0-0" { // PGN uses capital Os, but SAN uses zeros
 		// Kingside castle
 		pm.PieceType = King
@@ -57,11 +62,6 @@ func (m Move) Parse() (*ParsedMove, error) {
 		return pm, nil
 	}
 
-	if strings.HasSuffix(t, "+") {
-		pm.Check = true
-		t = t[:len(t)-1]
-	}
-
 	switch len(t) {
 	case 2:
 		return parseTextLen2(t, pm)
@@ -71,6 +71,8 @@ func (m Move) Parse() (*ParsedMove, error) {
 		return parseTextLen4(t, pm)
 	case 5:
 		return parseTextLen5(t, pm)
+	case 6:
+		return parseTextLen6(t, pm)
 	default:
 		return pm, errors.New("Unable to parse movetext " + t)
 	}
@@ -192,6 +194,25 @@ func parseTextLen5(t string, pm *ParsedMove) (*ParsedMove, error) {
 	pm.DestinationFile = t[3:4]
 	pm.DestinationRank = t[4:5]
 	pm.Destination = t[3:]
+
+	return pm, nil
+}
+
+// parseTextLen6 parses movetext of length 6 (after stripping +).
+func parseTextLen6(t string, pm *ParsedMove) (*ParsedMove, error) {
+	// 6-char movetext is very uncommon; have only seen it with a
+	// pawn capture that was also a pawn promotion
+	// Example: fxg1=Q
+	pm.PieceType = Pawn
+	pm.Capture = true
+
+	pm.DepartureFile = t[:1]
+
+	pm.Destination = t[2:4]
+	pm.DestinationFile = t[2:3]
+	pm.DestinationRank = t[3:4]
+
+	pm.PawnPromotion = SymbolToRank[t[5:6]]
 
 	return pm, nil
 }

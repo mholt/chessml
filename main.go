@@ -10,6 +10,9 @@ import (
 
 func main() {
 	// TODO: Parse command line flags, etc...
+	// TODO: Testing. We should probably spot-check some games to make
+	// sure it's working.
+	// Game 8 of Adams.pgn ends in a draw but I don't see it...
 
 	f, err := os.Open("Adams.pgn")
 	if err != nil {
@@ -24,12 +27,15 @@ func main() {
 
 	fmt.Printf("%d games loaded\n", len(games))
 
-	game := games[18] // In game 18, white's move on turn 46 'fxg6' is en passant
+	game := games[439]
+	fmt.Println(game.Tags)
+
 	err = game.Execute(-1)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	fmt.Println(game.Board)
 	/*
 		for i, game := range games {
 			fmt.Println("Playing game", i)
@@ -40,4 +46,5 @@ func main() {
 		}
 		fmt.Println("Played all games!")
 	*/
+
 }

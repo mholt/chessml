@@ -176,12 +176,12 @@ func PawnMoves(b Board, row, col int) (possible []ValidMove) {
 	return
 }
 
-func tryMove(b Board, pieceColor Color, row, col int) (valid, capture bool) {
-	if row < 0 || row >= Size || col < 0 || col >= Size {
+func tryMove(b Board, pieceColor Color, toRow, toCol int) (valid, capture bool) {
+	if toRow < 0 || toRow >= Size || toCol < 0 || toCol >= Size {
 		return false, false
 	}
 
-	target := b.Spaces[row][col]
+	target := b.Spaces[toRow][toCol]
 
 	if target.Rank == Empty {
 		return true, false // Valid move to empty square.
@@ -236,6 +236,44 @@ func tryAndAppend(vm []ValidMove, b Board, row, col, rowDiff, colDiff int) []Val
 	}
 
 	return vm
+}
+
+// movePossible returns whether piece can move from row,col to destRow,destCol.
+func movePossible(b Board, piece Piece, row, col, destRow, destCol int) bool {
+	possible := PossibleMoves(b, piece, row, col)
+	for _, move := range possible {
+		if move.To.Row == destRow && move.To.Col == destCol {
+			return true
+		}
+	}
+	return false
+}
+
+// isCheck returns true if c's King is in check, false otherwise.
+func isCheck(b Board, c Color) bool {
+	var kingPos Coord
+
+	// Find c's king
+	for i := 0; i < Size; i++ {
+		for j := 0; j < Size; j++ {
+			if b.Spaces[i][j].Color == c && b.Spaces[i][j].Rank == King {
+				kingPos = Coord{Row: i, Col: j}
+			}
+		}
+	}
+
+	// See if anything of the other color can move to its spot
+	for i := 0; i < Size; i++ {
+		for j := 0; j < Size; j++ {
+			if b.Spaces[i][j].Color != c && b.Spaces[i][j].Rank != Empty {
+				if movePossible(b, b.Spaces[i][j], i, j, kingPos.Row, kingPos.Col) {
+					return true
+				}
+			}
+		}
+	}
+
+	return false
 }
 
 // ValidMove represents a possible move that has not necessarily been made.
