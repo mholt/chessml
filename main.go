@@ -10,9 +10,6 @@ import (
 
 func main() {
 	// TODO: Parse command line flags, etc...
-	// TODO: Testing. We should probably spot-check some games to make
-	// sure it's working.
-	// Game 8 of Adams.pgn ends in a draw but I don't see it...
 
 	f, err := os.Open("Adams.pgn")
 	if err != nil {
