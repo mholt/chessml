@@ -28,7 +28,6 @@ func PointValue(p Piece) string {
 // Material computes the point value of pieces on the board
 // for either WhiteTeam or BlackTeam.
 func Material(game chess.Game, player chess.Color) int {
-	// TODO
 	total := 0
 
 	b * Board = game.Board
@@ -46,7 +45,6 @@ func Material(game chess.Game, player chess.Color) int {
 // AttackValue computes the point value of all the opponent's pieces that
 // may be captured right now by either WhiteTeam or BlackTeam attacking.
 func AttackValue(game chess.Game, attacking chess.Color) int {
-	// TODO
 	total := 0
 
 	b * Board = game.Board
@@ -69,8 +67,6 @@ func AttackValue(game chess.Game, attacking chess.Color) int {
 // Mobility computes the number of moves possible right now
 // for either WhiteTeam or BlackTeam.
 func Mobility(game chess.Game, player chess.Color) int {
-
-	// TODO
 	total := 0
 
 	b * Board = game.Board
@@ -86,11 +82,37 @@ func Mobility(game chess.Game, player chess.Color) int {
 	return total
 }
 
+// white's half is row indices 0-3
+// black's half is row indices 4-7
+func boardHalfColor(row int) chess.Color {
+	if row <= 3 {
+		return WhiteTeam
+	}
+	return BlackTeam
+}
+
 // Space computes the number of spaces controlled/protected by
 // WhiteTeam or BlackTeam.
 func Space(game chess.Game, player chess.Color) int {
-	// TODO
-	return 0
+	// the spaces that the player controls on the other player's half of the board
+	total := 0
+
+	b * Board = game.Board
+	for c := 0; c < Size; c++ {
+		for r := 0; r < Size; r++ {
+			if b.Spaces[r][c].Rank != Empty && b.Spaces[r][c].Color == player {
+				possibleMoves := PossibleMoves(b, b.Spaces[r][c], r, c)
+				for m := 0; m < len(possibleMoves); m++ {
+					// the space is only controlled when the piece can make a move that is attacking, so for pawns, it must not be the same column
+					if boardHalfColor(possibleMoves[m].To.Row) != player && (b.Spaces[r][c].Rank != Pawn || possibleMoves[m].To.Col != c) {
+						total += PointValue(b.Spaces[possibleMoves[m].To.Row][possibleMoves[m].To.Col])
+					}
+				}
+			}
+		}
+	}
+
+	return total
 }
 
 // TODO: Functions for any other features we want to use for our learning algorithm
