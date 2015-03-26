@@ -71,7 +71,19 @@ func AttackValue(game chess.Game, attacking chess.Color) int {
 func Mobility(game chess.Game, player chess.Color) int {
 
 	// TODO
-	return 0
+	total := 0
+
+	b * Board = game.Board
+	for c := 0; c < Size; c++ {
+		for r := 0; r < Size; r++ {
+			if b.Spaces[r][c].Rank != Empty && b.Spaces[r][c].Color == player {
+				possibleMoves := PossibleMoves(b, b.Spaces[r][c], r, c)
+				total += len(possibleMoves)
+			}
+		}
+	}
+
+	return total
 }
 
 // Space computes the number of spaces controlled/protected by
