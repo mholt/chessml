@@ -23,7 +23,7 @@ func GenerateARFF(games []Game, numMoves int) {
 	f.WriteString("@attribute attack-value   REAL\n")
 	f.WriteString("@attribute mobility       REAL\n")
 	f.WriteString("@attribute space          REAL\n")
-	f.WriteString("@attribute class          {lose, win}\n\n")
+	f.WriteString("@attribute class          {won, lost, draw, other}\n\n")
 	f.WriteString("@data\n%%\n%% " + FormatInt(len(games), 10) + " instances\n%%\n")
 
 	f.WriteString("%%\n%%\n%%\n")

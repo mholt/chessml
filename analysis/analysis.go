@@ -6,25 +6,6 @@ package analysis
 
 import "github.com/mholt/chessml/chess"
 
-func PointValue(p Piece) string {
-	switch p.Rank {
-	case King:
-		return 0
-	case Queen:
-		return 9
-	case Bishop:
-		return 3
-	case Knight:
-		return 3
-	case Rook:
-		return 5
-	case Pawn:
-		return 1
-	default:
-		return 1
-	}
-}
-
 // Material computes the point value of pieces on the board
 // for either WhiteTeam or BlackTeam.
 func Material(game chess.Game, player chess.Color) int {
@@ -82,15 +63,6 @@ func Mobility(game chess.Game, player chess.Color) int {
 	return total
 }
 
-// white's half is row indices 0-3
-// black's half is row indices 4-7
-func BoardHalfColor(row int) chess.Color {
-	if row <= 3 {
-		return WhiteTeam
-	}
-	return BlackTeam
-}
-
 // Space computes the number of spaces controlled/protected by
 // WhiteTeam or BlackTeam.
 func Space(game chess.Game, player chess.Color) int {
@@ -116,3 +88,33 @@ func Space(game chess.Game, player chess.Color) int {
 }
 
 // TODO: Functions for any other features we want to use for our learning algorithm
+
+// helper functions
+
+// white's half is row indices 0-3
+// black's half is row indices 4-7
+func BoardHalfColor(row int) chess.Color {
+	if row <= 3 {
+		return WhiteTeam
+	}
+	return BlackTeam
+}
+
+func PointValue(p Piece) string {
+	switch p.Rank {
+	case King:
+		return 0
+	case Queen:
+		return 9
+	case Bishop:
+		return 3
+	case Knight:
+		return 3
+	case Rook:
+		return 5
+	case Pawn:
+		return 1
+	default:
+		return 1
+	}
+}
