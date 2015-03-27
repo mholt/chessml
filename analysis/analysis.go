@@ -84,7 +84,7 @@ func Mobility(game chess.Game, player chess.Color) int {
 
 // white's half is row indices 0-3
 // black's half is row indices 4-7
-func boardHalfColor(row int) chess.Color {
+func BoardHalfColor(row int) chess.Color {
 	if row <= 3 {
 		return WhiteTeam
 	}
@@ -104,7 +104,7 @@ func Space(game chess.Game, player chess.Color) int {
 				possibleMoves := PossibleMoves(b, b.Spaces[r][c], r, c)
 				for m := 0; m < len(possibleMoves); m++ {
 					// the space is only controlled when the piece can make a move that is attacking, so for pawns, it must not be the same column
-					if boardHalfColor(possibleMoves[m].To.Row) != player && (b.Spaces[r][c].Rank != Pawn || possibleMoves[m].To.Col != c) {
+					if BoardHalfColor(possibleMoves[m].To.Row) != player && (b.Spaces[r][c].Rank != Pawn || possibleMoves[m].To.Col != c) {
 						total += PointValue(b.Spaces[possibleMoves[m].To.Row][possibleMoves[m].To.Col])
 					}
 				}
