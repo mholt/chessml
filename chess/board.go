@@ -96,19 +96,22 @@ func (b Board) String() string {
 }
 
 // MovePiece moves a piece. It performs captures by replacing
-// any existing piece on the to coordinate.
-func (b *Board) MovePiece(from, to Coord) error {
+// any existing piece on the to coordinate and returns the replaced
+// piece. (If no piece was replaced, its rank will be Empty.)
+func (b *Board) MovePiece(from, to Coord) (replaced Piece, err error) {
 	if from.Col < 0 || from.Col >= Size || to.Col < 0 || to.Col >= Size {
-		return errors.New("Coordinate out of bounds")
+		return replaced, errors.New("Coordinate out of bounds")
 	}
 
 	if b.Spaces[from.Row][from.Col].Rank == Empty {
-		return fmt.Errorf("No piece to move at row,col (%d,%d)", from.Row, from.Col)
+		return replaced, fmt.Errorf("No piece to move at row,col (%d,%d)", from.Row, from.Col)
 	}
 
+	replaced = b.Spaces[to.Row][to.Col]
 	b.Spaces[to.Row][to.Col] = b.Spaces[from.Row][from.Col]
 	b.Spaces[from.Row][from.Col].Rank = Empty
 
+	// Reset the en passant flags for all pieces (pawns) of this color
 	for i := 0; i < Size; i++ {
 		for j := 0; j < Size; j++ {
 			if b.Spaces[i][j].Color == b.Spaces[to.Row][to.Col].Color {
@@ -117,14 +120,25 @@ func (b *Board) MovePiece(from, to Coord) error {
 		}
 	}
 
-	piece := b.Spaces[to.Row][to.Col]
-	if piece.Rank == Pawn {
-		if to.Row-from.Row == 2 || to.Row-from.Row == -2 {
-			piece.EnPassantable = true
-		}
+	// If this piece is a pawn, see if the opponent could use
+	// en passant on their next turn and set the flag.
+	if b.Spaces[to.Row][to.Col].Rank == Pawn &&
+		(to.Row-from.Row == 2 || to.Row-from.Row == -2) {
+		b.Spaces[to.Row][to.Col].EnPassantable = true
 	}
 
-	return nil
+	return
+}
+
+// copy makes a deep copy of the board
+func (b *Board) copy() Board {
+	b2 := Board{}
+	for i := 0; i < Size; i++ {
+		for j := 0; j < Size; j++ {
+			b2.Spaces[i][j] = b.Spaces[i][j]
+		}
+	}
+	return b2
 }
 
 // PieceSymbol returns the unicode chess symbol for p.

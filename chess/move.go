@@ -29,18 +29,23 @@ type ParsedMove struct {
 	Check           bool
 	Capture         bool
 	Castle          string // KingsideCastle or QueensideCastle
-	PawnPromotion   Rank   // what the pawn was promoted to
+	PawnPromotion   Rank   // what the pawn is promoted to
 	EnPassant       bool   // Note: Movetext may not specify this; might have to rely on game state
 }
 
 // Parse parses the movetext into usable values; those
 // values are returned in ParsedMove
-func (m Move) Parse() (ParsedMove, error) {
-	pm := ParsedMove{Color: m.PlayerColor}
+func (m Move) Parse() (*ParsedMove, error) {
+	pm := &ParsedMove{Color: m.PlayerColor}
 	t := m.Text
 
 	if len(t) < 2 {
-		return ParsedMove{}, errors.New("Movetext too short")
+		return nil, errors.New("Movetext too short")
+	}
+
+	if strings.HasSuffix(t, "+") {
+		pm.Check = true
+		t = t[:len(t)-1]
 	}
 
 	if t == "O-O" || t == "0-0" { // PGN uses capital Os, but SAN uses zeros
@@ -57,11 +62,6 @@ func (m Move) Parse() (ParsedMove, error) {
 		return pm, nil
 	}
 
-	if strings.HasSuffix(t, "+") {
-		pm.Check = true
-		t = t[:len(t)-1]
-	}
-
 	switch len(t) {
 	case 2:
 		return parseTextLen2(t, pm)
@@ -71,13 +71,15 @@ func (m Move) Parse() (ParsedMove, error) {
 		return parseTextLen4(t, pm)
 	case 5:
 		return parseTextLen5(t, pm)
+	case 6:
+		return parseTextLen6(t, pm)
 	default:
 		return pm, errors.New("Unable to parse movetext " + t)
 	}
 }
 
 // parseTextLen2 parses movetext of length 2 (after stripping +)
-func parseTextLen2(t string, pm ParsedMove) (ParsedMove, error) {
+func parseTextLen2(t string, pm *ParsedMove) (*ParsedMove, error) {
 	pm.PieceType = Pawn
 
 	if isFile[t[1]] {
@@ -100,7 +102,7 @@ func parseTextLen2(t string, pm ParsedMove) (ParsedMove, error) {
 }
 
 // parseTextLen3 parses movetext of length 3 (after stripping +).
-func parseTextLen3(t string, pm ParsedMove) (ParsedMove, error) {
+func parseTextLen3(t string, pm *ParsedMove) (*ParsedMove, error) {
 	if isPiece[t[0]] {
 		// Piece type specified along with destination file and rank
 		// Examples: Nd2, Qh4, Bf6
@@ -123,7 +125,18 @@ func parseTextLen3(t string, pm ParsedMove) (ParsedMove, error) {
 }
 
 // parseTextLen4 parses movetext of length 4 (after stripping +).
-func parseTextLen4(t string, pm ParsedMove) (ParsedMove, error) {
+func parseTextLen4(t string, pm *ParsedMove) (*ParsedMove, error) {
+	if strings.Index(t, "=") == 2 {
+		// Special case: pawn promotion!
+		// Example: c1=Q
+		pm.PieceType = Pawn
+		pm.Destination = t[0:2]
+		pm.DestinationFile = t[0:1]
+		pm.DestinationRank = t[1:2]
+		pm.PawnPromotion = SymbolToRank[t[3:4]]
+		return pm, nil
+	}
+
 	if isPiece[t[0]] {
 		// Piece type and rank/file/capture along with destination rank and file
 		// Examples: Nfd7, Bxh7, Rde1, Kxd8, Qxd4, R7g5
@@ -157,7 +170,7 @@ func parseTextLen4(t string, pm ParsedMove) (ParsedMove, error) {
 }
 
 // parseTextLen5 parses movetext of length 5 (after stripping +).
-func parseTextLen5(t string, pm ParsedMove) (ParsedMove, error) {
+func parseTextLen5(t string, pm *ParsedMove) (*ParsedMove, error) {
 	// 5-char movetext is less common; usually a disambiguated non-pawn capture
 	// Examples: N5xf3, Rdxd5, Nbxd4
 	pm.PieceType = SymbolToRank[t[:1]]
@@ -181,6 +194,25 @@ func parseTextLen5(t string, pm ParsedMove) (ParsedMove, error) {
 	pm.DestinationFile = t[3:4]
 	pm.DestinationRank = t[4:5]
 	pm.Destination = t[3:]
+
+	return pm, nil
+}
+
+// parseTextLen6 parses movetext of length 6 (after stripping +).
+func parseTextLen6(t string, pm *ParsedMove) (*ParsedMove, error) {
+	// 6-char movetext is very uncommon; have only seen it with a
+	// pawn capture that was also a pawn promotion
+	// Example: fxg1=Q
+	pm.PieceType = Pawn
+	pm.Capture = true
+
+	pm.DepartureFile = t[:1]
+
+	pm.Destination = t[2:4]
+	pm.DestinationFile = t[2:3]
+	pm.DestinationRank = t[3:4]
+
+	pm.PawnPromotion = SymbolToRank[t[5:6]]
 
 	return pm, nil
 }
