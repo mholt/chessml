@@ -26,7 +26,6 @@ func GenerateARFF(games []chess.Game, numMoves int) {
 
 	for i := 0; i < len(games); i++ {
 		games[i].Execute(numMoves)
-
 		material := analysis.Material(games[i], chess.WhiteTeam)
 		attackValue := analysis.AttackValue(games[i], chess.WhiteTeam)
 		mobility := analysis.Mobility(games[i], chess.WhiteTeam)
