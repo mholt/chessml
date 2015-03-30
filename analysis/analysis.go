@@ -11,11 +11,10 @@ import "github.com/mholt/chessml/chess"
 func Material(game chess.Game, player chess.Color) int {
 	total := 0
 
-	b * Board = game.Board
-	for c := 0; c < Size; c++ {
-		for r := 0; r < Size; r++ {
-			if b.Spaces[r][c].Rank != Empty && b.Spaces[r][c].Color == player {
-				total += PointValue(b.Spaces[r][c])
+	for c := 0; c < chess.Size; c++ {
+		for r := 0; r < chess.Size; r++ {
+			if game.Board.Spaces[r][c].Rank != chess.Empty && game.Board.Spaces[r][c].Color == player {
+				total += PointValue(game.Board.Spaces[r][c])
 			}
 		}
 	}
@@ -28,14 +27,13 @@ func Material(game chess.Game, player chess.Color) int {
 func AttackValue(game chess.Game, attacking chess.Color) int {
 	total := 0
 
-	b * Board = game.Board
-	for c := 0; c < Size; c++ {
-		for r := 0; r < Size; r++ {
-			if b.Spaces[r][c].Rank != Empty && b.Spaces[r][c].Color == attacking {
-				possibleMoves := PossibleMoves(b, b.Spaces[r][c], r, c)
+	for c := 0; c < chess.Size; c++ {
+		for r := 0; r < chess.Size; r++ {
+			if game.Board.Spaces[r][c].Rank != chess.Empty && game.Board.Spaces[r][c].Color == attacking {
+				possibleMoves := chess.PossibleMoves(game.Board, game.Board.Spaces[r][c], r, c)
 				for m := 0; m < len(possibleMoves); m++ {
 					if possibleMoves[m].Capture {
-						total += PointValue(b.Spaces[possibleMoves[m].To.Row][possibleMoves[m].To.Col])
+						total += PointValue(game.Board.Spaces[possibleMoves[m].To.Row][possibleMoves[m].To.Col])
 					}
 				}
 			}
@@ -50,11 +48,10 @@ func AttackValue(game chess.Game, attacking chess.Color) int {
 func Mobility(game chess.Game, player chess.Color) int {
 	total := 0
 
-	b * Board = game.Board
-	for c := 0; c < Size; c++ {
-		for r := 0; r < Size; r++ {
-			if b.Spaces[r][c].Rank != Empty && b.Spaces[r][c].Color == player {
-				possibleMoves := PossibleMoves(b, b.Spaces[r][c], r, c)
+	for c := 0; c < chess.Size; c++ {
+		for r := 0; r < chess.Size; r++ {
+			if game.Board.Spaces[r][c].Rank != chess.Empty && game.Board.Spaces[r][c].Color == player {
+				possibleMoves := chess.PossibleMoves(game.Board, game.Board.Spaces[r][c], r, c)
 				total += len(possibleMoves)
 			}
 		}
@@ -69,15 +66,14 @@ func Space(game chess.Game, player chess.Color) int {
 	// the spaces that the player controls on the other player's half of the board
 	total := 0
 
-	b * Board = game.Board
-	for c := 0; c < Size; c++ {
-		for r := 0; r < Size; r++ {
-			if b.Spaces[r][c].Rank != Empty && b.Spaces[r][c].Color == player {
-				possibleMoves := PossibleMoves(b, b.Spaces[r][c], r, c)
+	for c := 0; c < chess.Size; c++ {
+		for r := 0; r < chess.Size; r++ {
+			if game.Board.Spaces[r][c].Rank != chess.Empty && game.Board.Spaces[r][c].Color == player {
+				possibleMoves := chess.PossibleMoves(game.Board, game.Board.Spaces[r][c], r, c)
 				for m := 0; m < len(possibleMoves); m++ {
 					// the space is only controlled when the piece can make a move that is attacking, so for pawns, it must not be the same column
-					if BoardHalfColor(possibleMoves[m].To.Row) != player && (b.Spaces[r][c].Rank != Pawn || possibleMoves[m].To.Col != c) {
-						total += PointValue(b.Spaces[possibleMoves[m].To.Row][possibleMoves[m].To.Col])
+					if BoardHalfColor(possibleMoves[m].To.Row) != player && (game.Board.Spaces[r][c].Rank != chess.Pawn || possibleMoves[m].To.Col != c) {
+						total += PointValue(game.Board.Spaces[possibleMoves[m].To.Row][possibleMoves[m].To.Col])
 					}
 				}
 			}
@@ -95,24 +91,24 @@ func Space(game chess.Game, player chess.Color) int {
 // black's half is row indices 4-7
 func BoardHalfColor(row int) chess.Color {
 	if row <= 3 {
-		return WhiteTeam
+		return chess.WhiteTeam
 	}
-	return BlackTeam
+	return chess.BlackTeam
 }
 
-func PointValue(p Piece) string {
+func PointValue(p chess.Piece) int {
 	switch p.Rank {
-	case King:
+	case chess.King:
 		return 0
-	case Queen:
+	case chess.Queen:
 		return 9
-	case Bishop:
+	case chess.Bishop:
 		return 3
-	case Knight:
+	case chess.Knight:
 		return 3
-	case Rook:
+	case chess.Rook:
 		return 5
-	case Pawn:
+	case chess.Pawn:
 		return 1
 	default:
 		return 1

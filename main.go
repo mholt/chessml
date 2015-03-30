@@ -24,7 +24,7 @@ func main() {
 		return
 	}
 
-	GenerateARFF(games, 30)
+	arff.GenerateARFF(games, 30)
 
 	fmt.Printf("%d games loaded\n", len(games))
 
