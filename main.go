@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/mholt/chessml/arff"
@@ -23,18 +22,18 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-
-	arff.GenerateARFF(games, 30)
-
 	fmt.Printf("%d games loaded\n", len(games))
 
-	for i, game := range games {
-		fmt.Println("Playing game", i)
-		err = game.Execute(-1)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-	fmt.Println("Played all games!")
+	arff.GenerateARFF(games, .2)
+	/*
 
+		for i, game := range games {
+			fmt.Println("Playing game", i)
+			err = game.Execute(-1)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+		fmt.Println("Played all games!")
+	*/
 }
