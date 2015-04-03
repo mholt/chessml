@@ -9,6 +9,10 @@ import (
 	"github.com/mholt/chessml/chess"
 )
 
+// GenerateARFF makes an ARFF file by snapshotting the games at
+// pctMoves of the way through the game. In other words, a pctMoves
+// of 0.7 will play 70% of the moves and then snapshot the game,
+// writing a line into the ARFF file.
 func GenerateARFF(games []chess.Game, pctMoves float64) {
 	f, err := os.Create("data/chess.arff")
 	if err != nil {
