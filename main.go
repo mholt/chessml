@@ -24,7 +24,7 @@ func main() {
 	}
 	fmt.Printf("%d games loaded\n", len(games))
 
-	arff.GenerateARFF(games, .2)
+	arff.GenerateARFF(games, .8)
 	/*
 
 		for i, game := range games {

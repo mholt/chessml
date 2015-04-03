@@ -26,27 +26,29 @@ func GenerateARFF(games []chess.Game, pctMoves float64) {
 	f.WriteString("@attribute class          REAL\n\n")
 	f.WriteString("@data\n%%\n%% " + strconv.Itoa(len(games)) + " instances\n%%\n")
 
-	for i := 0; i < len(games); i++ {
-		numMoves := int(float64(len(games[i].Moves)) * pctMoves)
-		games[i].Execute(numMoves)
+	for _, game := range games {
+		numMoves := int(float64(len(game.Moves)) * pctMoves)
+		game.Execute(numMoves)
 
-		material := float64((analysis.Material(games[i], chess.WhiteTeam) + 1)) / float64((analysis.Material(games[i], chess.BlackTeam) + 1))
-		attackValue := float64((analysis.AttackValue(games[i], chess.WhiteTeam) + 1)) / float64((analysis.AttackValue(games[i], chess.BlackTeam) + 1))
-		mobility := float64((analysis.Mobility(games[i], chess.WhiteTeam) + 1)) / float64((analysis.Mobility(games[i], chess.BlackTeam) + 1))
-		space := float64((analysis.Space(games[i], chess.WhiteTeam) + 1)) / float64((analysis.Space(games[i], chess.BlackTeam) + 1))
+		material := (analysis.Material(game, chess.WhiteTeam) + 1) / (analysis.Material(game, chess.BlackTeam) + 1)
+		attackValue := (analysis.AttackValue(game, chess.WhiteTeam) + 1) / (analysis.AttackValue(game, chess.BlackTeam) + 1)
+		mobility := (analysis.Mobility(game, chess.WhiteTeam) + 1) / (analysis.Mobility(game, chess.BlackTeam) + 1)
+		space := (analysis.Space(game, chess.WhiteTeam) + 1) / (analysis.Space(game, chess.BlackTeam) + 1)
+		currentCheck := (analysis.CurrentCheck(game, chess.WhiteTeam) + 1) / (analysis.CurrentCheck(game, chess.BlackTeam) + 1)
+		putInCheck := (analysis.PutInCheck(game, chess.WhiteTeam) + 1) / (analysis.PutInCheck(game, chess.BlackTeam) + 1)
 
 		// For now, we assume that we are training to predict WHITE's move (ie. it's white's turn)
 		var outcome float64
-		switch games[i].Tags["Result"] {
+		switch game.Tags["Result"] {
 		case chess.WhiteWin:
-			outcome = float64(analysis.Material(games[i], chess.WhiteTeam)) / float64(analysis.Material(games[i], chess.BlackTeam))
+			outcome = float64(analysis.Material(game, chess.WhiteTeam)) / float64(analysis.Material(game, chess.BlackTeam))
 		case chess.BlackWin:
-			outcome = -float64(analysis.Material(games[i], chess.BlackTeam)) / float64(analysis.Material(games[i], chess.WhiteTeam))
+			outcome = -float64(analysis.Material(game, chess.BlackTeam)) / float64(analysis.Material(game, chess.WhiteTeam))
 		default:
 			outcome = 0
 		}
 
-		f.WriteString(fmt.Sprintf("%f,%f,%f,%f,%f\n", material, attackValue, mobility, space, outcome))
+		f.WriteString(fmt.Sprintf("%f,%f,%f,%f,%f,%f,%f\n", material, attackValue, mobility, space, currentCheck, putInCheck, outcome))
 	}
 
 	f.WriteString("%%\n%%\n%%\n")

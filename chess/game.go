@@ -140,7 +140,7 @@ func (g *Game) findPiece(pm *ParsedMove) (Piece, int, int, bool) {
 					boardCopy.Spaces[row][destCol].Rank = Empty
 				}
 
-				if isCheck(boardCopy, pm.Color) {
+				if NumCheckingKing(boardCopy, pm.Color, false) > 0 {
 					continue // Not allowed; find another piece
 				}
 
