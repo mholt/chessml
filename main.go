@@ -9,8 +9,6 @@ import (
 )
 
 func main() {
-	// TODO: Parse command line flags, etc...
-
 	f, err := os.Open("Adams.pgn")
 	if err != nil {
 		panic(err)

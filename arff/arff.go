@@ -10,7 +10,7 @@ import (
 )
 
 func GenerateARFF(games []chess.Game, pctMoves float64) {
-	f, err := os.Create("data/chess2.arff")
+	f, err := os.Create("data/chess.arff")
 	if err != nil {
 		panic(err)
 	}
@@ -23,6 +23,8 @@ func GenerateARFF(games []chess.Game, pctMoves float64) {
 	f.WriteString("@attribute attack-value   REAL\n")
 	f.WriteString("@attribute mobility       REAL\n")
 	f.WriteString("@attribute space          REAL\n")
+	f.WriteString("@attribute currentCheck   REAL\n")
+	f.WriteString("@attribute putInCheck     REAL\n")
 	f.WriteString("@attribute class          REAL\n\n")
 	f.WriteString("@data\n%%\n%% " + strconv.Itoa(len(games)) + " instances\n%%\n")
 
@@ -36,6 +38,9 @@ func GenerateARFF(games []chess.Game, pctMoves float64) {
 		space := (analysis.Space(game, chess.WhiteTeam) + 1) / (analysis.Space(game, chess.BlackTeam) + 1)
 		currentCheck := (analysis.CurrentCheck(game, chess.WhiteTeam) + 1) / (analysis.CurrentCheck(game, chess.BlackTeam) + 1)
 		putInCheck := (analysis.PutInCheck(game, chess.WhiteTeam) + 1) / (analysis.PutInCheck(game, chess.BlackTeam) + 1)
+
+		// Finish executing game to know how extreme the win/loss is
+		game.Execute(-1)
 
 		// For now, we assume that we are training to predict WHITE's move (ie. it's white's turn)
 		var outcome float64
