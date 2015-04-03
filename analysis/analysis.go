@@ -124,15 +124,15 @@ func BoardHalfColor(row int) chess.Color {
 func PointValue(p chess.Piece) float64 {
 	switch p.Rank {
 	case chess.King:
-		return 0.0
+		return 0.1
 	case chess.Queen:
-		return 9.0
+		return 8.8
 	case chess.Bishop:
-		return 3.0
+		return 3.33
 	case chess.Knight:
-		return 3.0
+		return 3.2
 	case chess.Rook:
-		return 5.0
+		return 5.1
 	case chess.Pawn:
 		return 1.0
 	default:
