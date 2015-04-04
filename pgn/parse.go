@@ -41,14 +41,31 @@ type gameParser struct {
 func (gp *gameParser) parseGame() (chess.Game, bool, error) {
 	gp.game = chess.Game{}
 
-	done, err := gp.parseTags()
-	if err != nil {
-		return gp.game, false, err
-	} else if done {
-		return gp.game, true, nil
+	// We must insist that a game starts with tags
+	// so that we can gracefully handle malformed PGN files
+	// by skipping bad lines between games. That's why this
+	// is in a loop. We skip lines until EOF or err is nil.
+	for {
+		done, err := gp.parseTags()
+		if err != nil {
+			// Skip line as if it was commented
+			currentLine := gp.line
+			for gp.line == currentLine {
+				if !gp.scan() {
+					return gp.game, true, err // no more input
+				}
+			}
+			continue
+		} else if done {
+			// Finished with all games
+			return gp.game, true, nil
+		}
+
+		// If all is well, no need to parse tags again
+		break
 	}
 
-	err = gp.parseMoves()
+	err := gp.parseMoves()
 	if err != nil {
 		return gp.game, false, err
 	}
@@ -229,7 +246,13 @@ func (gp *gameParser) parseTurn() (bool, error) {
 	// Turns start with a '.' which must come after the turn
 	// number, but only if we haven't already consumed it.
 	if gp.mv == "" && gp.getch() != moveStart {
-		return false, gp.err("Expected turn starting with a dot '.'")
+		// If there is a space between the turn number and the move
+		// (e.g. "1. df") then we simply consume the space as well.
+		if gp.getch() == ' ' || gp.getch() == '\n' || gp.getch() == '\r' {
+			gp.scan() // consume the extra space
+		} else {
+			return false, gp.err("Expected turn starting with a dot '.'")
+		}
 	}
 
 	// White's move is the first move of a turn, but we may
@@ -299,6 +322,14 @@ func (gp *gameParser) parseMove() (string, error) {
 
 	for gp.scan() {
 		ch := gp.getch()
+
+		if ch == '{' {
+			// Comment in the movetext
+			for gp.getch() != '}' {
+				gp.scan()
+			}
+			gp.scan() // consume closing curly brace
+		}
 
 		if unicode.IsSpace(ch) {
 			if len(mv) > 0 {

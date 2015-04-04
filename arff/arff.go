@@ -2,6 +2,7 @@ package arff
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 
@@ -34,7 +35,12 @@ func GenerateARFF(games []chess.Game, pctMoves float64) {
 
 	for _, game := range games {
 		numMoves := int(float64(len(game.Moves)) * pctMoves)
-		game.Execute(numMoves)
+		err := game.Execute(numMoves)
+		if err != nil {
+			log.Println(err)
+			log.Println("^ Skipping that game")
+			continue
+		}
 
 		material := (analysis.Material(game, chess.WhiteTeam) + 1) / (analysis.Material(game, chess.BlackTeam) + 1)
 		attackValue := (analysis.AttackValue(game, chess.WhiteTeam) + 1) / (analysis.AttackValue(game, chess.BlackTeam) + 1)
@@ -44,7 +50,12 @@ func GenerateARFF(games []chess.Game, pctMoves float64) {
 		putInCheck := (analysis.PutInCheck(game, chess.WhiteTeam) + 1) / (analysis.PutInCheck(game, chess.BlackTeam) + 1)
 
 		// Finish executing game to know how extreme the win/loss is
-		game.Execute(-1)
+		err = game.Execute(-1)
+		if err != nil {
+			log.Println(err)
+			log.Println("^ Skipping that game")
+			continue
+		}
 
 		// For now, we assume that we are training to predict WHITE's move (ie. it's white's turn)
 		var outcome float64

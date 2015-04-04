@@ -14,9 +14,7 @@ import (
 )
 
 func main() {
-	games := loadRandomGames("pgnfiles/", 10)
-
-	fmt.Println(games)
+	games := loadRandomGames("pgnfiles", 10000)
 
 	arff.GenerateARFF(games, .8)
 }
@@ -40,6 +38,7 @@ func loadRandomGames(dir string, n int) []chess.Game {
 		if filepath.Ext(path) != ".pgn" {
 			return nil
 		}
+
 		fmt.Println(path)
 
 		f, err := os.Open(path)
@@ -55,8 +54,8 @@ func loadRandomGames(dir string, n int) []chess.Game {
 		for _, game := range fgames {
 			k++
 
-			if k < n {
-				// First make sure the reservoir is filled
+			if k <= n {
+				// First fill up the reservoir
 				games = append(games, game)
 			} else {
 				// Otherwise keep each new element with probability n/k
@@ -72,22 +71,4 @@ func loadRandomGames(dir string, n int) []chess.Game {
 	})
 
 	return games
-
-	/*
-		array R[k];    // result
-		integer i, j;
-
-		// fill the reservoir array
-		for each i in 1 to k do
-		    R[i] := S[i]
-		done;
-
-		// replace elements with gradually decreasing probability
-		for each i in k+1 to length(S) do
-		    j := random(1, i);   // important: inclusive range
-		    if j <= k then
-		        R[j] := S[i]
-		    fi
-		done
-	*/
 }
