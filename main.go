@@ -14,8 +14,7 @@ import (
 )
 
 func main() {
-	games := loadRandomGames("pgnfiles", 10000)
-
+	games := loadRandomGames("pgnfiles/", 20000)
 	arff.GenerateARFF(games, .8)
 }
 

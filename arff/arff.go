@@ -31,7 +31,7 @@ func GenerateARFF(games []chess.Game, pctMoves float64) {
 	f.WriteString("@attribute currentCheck   REAL\n")
 	f.WriteString("@attribute putInCheck     REAL\n")
 	f.WriteString("@attribute class          REAL\n\n")
-	f.WriteString("@data\n%%\n%% At most " + strconv.Itoa(len(games)) + " instances\n%%\n")
+	f.WriteString("@data\n%%\n%% " + strconv.Itoa(len(games)) + " instances\n%%\n")
 
 	for _, game := range games {
 		numMoves := int(float64(len(game.Moves)) * pctMoves)
