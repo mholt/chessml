@@ -244,19 +244,16 @@ func (gp *gameParser) parseTurn() (bool, error) {
 	var err error
 
 	// Turns start with a '.' which must come after the turn
-	// number, but only if we haven't already consumed it.
+	// number, but sometimes there is a space after the number and
+	// dot, like "1. c4"
 	if gp.mv == "" && gp.getch() != moveStart {
-		// If there is a space between the turn number and the move
-		// (e.g. "1. df") then we simply consume the space as well.
-		if gp.getch() == ' ' || gp.getch() == '\n' || gp.getch() == '\r' {
-			gp.scan() // consume the extra space
-		} else {
+		if !unicode.IsSpace(gp.getch()) {
 			return false, gp.err("Expected turn starting with a dot '.'")
 		}
 	}
 
-	// White's move is the first move of a turn, but we may
-	// have already consumed it from the last turn, so use it.
+	// White's move is the first move of a turn, but we may have
+	// already consumed it from the last turn (gp.mv), so use it.
 	var whiteMove string
 	if gp.mv != "" {
 		whiteMove = gp.mv
@@ -275,14 +272,15 @@ func (gp *gameParser) parseTurn() (bool, error) {
 		Text:        whiteMove,
 	})
 
-	// There is always at least one move in a turn, so we
-	// don't check for end-of-game yet. The second one,
-	// however, might be end-of-game...
+	// Parse what we assume to be black's move
 	blackMove, err := gp.parseMove()
 	if err != nil {
 		return false, err
 	}
 
+	// There is always at least one move in a turn, so we
+	// didn't check for end-of-game yet. The second one,
+	// however, might be end-of-game instead of black's move...
 	if blackMove == chess.WhiteWin || blackMove == chess.BlackWin ||
 		blackMove == chess.Draw || blackMove == chess.Other {
 		// Game over; turns out we just parsed the result instead
@@ -307,7 +305,7 @@ func (gp *gameParser) parseTurn() (bool, error) {
 		return false, err
 	}
 	if dotIdx := strings.Index(mv, "."); dotIdx > -1 {
-		gp.mv = mv[dotIdx+1:]
+		gp.mv = mv[dotIdx+1:] // strip number out of the move
 	} else {
 		return true, nil // result indicates end of game; won't have '.' in it
 	}
@@ -317,6 +315,11 @@ func (gp *gameParser) parseTurn() (bool, error) {
 
 // parseMove parses a single move in a turn. It basically
 // collects tokens until a space character is encountered.
+// If a move starts with the move number (e.g. "3.Nf3"), the
+// whole thing will be returned; it is the job of the caller
+// to strip out the number and the dot after it (this method
+// has no notion of context and won't try to change anything).
+// This method will skip comments enclosed in { and } characters.
 func (gp *gameParser) parseMove() (string, error) {
 	var mv string
 
@@ -328,7 +331,7 @@ func (gp *gameParser) parseMove() (string, error) {
 			for gp.getch() != '}' {
 				gp.scan()
 			}
-			gp.scan() // consume closing curly brace
+			continue
 		}
 
 		if unicode.IsSpace(ch) {

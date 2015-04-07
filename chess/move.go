@@ -27,6 +27,7 @@ type ParsedMove struct {
 	DestinationFile string
 	Destination     string // concatenated DestinationRank and DestinationFile if both are given
 	Check           bool
+	Checkmate       bool // only set if explicitly declared in movetext
 	Capture         bool
 	Castle          string // KingsideCastle or QueensideCastle
 	PawnPromotion   Rank   // what the pawn is promoted to
@@ -46,6 +47,15 @@ func (m Move) Parse() (*ParsedMove, error) {
 	if strings.HasSuffix(t, "+") {
 		pm.Check = true
 		t = t[:len(t)-1]
+	}
+
+	if strings.HasSuffix(t, "#") || strings.HasSuffix(t, "‡") ||
+		strings.HasSuffix(t, "≠") {
+		pm.Checkmate = true
+		t = t[:len(t)-1]
+	} else if strings.HasSuffix(t, "++") {
+		pm.Checkmate = true
+		t = t[:len(t)-2]
 	}
 
 	if t == "O-O" || t == "0-0" { // PGN uses capital Os, but SAN uses zeros
@@ -111,12 +121,20 @@ func parseTextLen3(t string, pm *ParsedMove) (*ParsedMove, error) {
 		pm.DestinationFile = t[1:2]
 		pm.DestinationRank = t[2:3]
 	} else if isFile[t[0]] && (t[1] == 'x' || t[1] == ':') && isFile[t[1]] {
-		// Pawn capture, specified more verbosely using ':' or ':'
+		// Pawn capture, specified more verbosely using 'x' or ':'
 		// Examples: exd, e:d
 		pm.PieceType = Pawn
 		pm.DepartureFile = t[:1]
 		pm.DestinationFile = t[2:3]
 		pm.Capture = true
+	} else if isFile[t[0]] && isRank[t[1]] && isPiece[t[2]] {
+		// Pawn promotion, albeit not the proper PGN format
+		// Example: d8Q
+		pm.PieceType = Pawn
+		pm.Destination = t[0:2]
+		pm.DestinationFile = t[0:1]
+		pm.DestinationRank = t[1:2]
+		pm.PawnPromotion = SymbolToRank[t[2:3]]
 	} else {
 		return pm, errors.New("Invalid 3-character movetext (" + t + ")")
 	}
@@ -126,7 +144,7 @@ func parseTextLen3(t string, pm *ParsedMove) (*ParsedMove, error) {
 
 // parseTextLen4 parses movetext of length 4 (after stripping +).
 func parseTextLen4(t string, pm *ParsedMove) (*ParsedMove, error) {
-	if strings.Index(t, "=") == 2 {
+	if strings.Index(t, "=") == 2 || strings.Index(t, "/") == 2 { // "=" is proper PGN format
 		// Special case: pawn promotion!
 		// Example: c1=Q
 		pm.PieceType = Pawn

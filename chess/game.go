@@ -13,6 +13,14 @@ type Game struct {
 	moveIdx int
 }
 
+// Reset resets the game. The board is set to the initial state and
+// it is as if no moves have been played. This allows the game to
+// be replayed.
+func (g *Game) Reset() {
+	g.Board.Setup()
+	g.moveIdx = 0
+}
+
 // Execute plays n moves of the game or until the game
 // runs out of moves. It does nothing if the game has ended.
 // Pass in -1 to play all the moves.
@@ -29,7 +37,7 @@ func (g *Game) Execute(n int) error {
 		move := g.Moves[g.moveIdx]
 		err := g.move(move)
 		if err != nil {
-			return fmt.Errorf("Turn %d %s (%s) move %d - %s", g.moveIdx/2+int(move.PlayerColor)-1, move.Player, move.Text, g.moveIdx, err)
+			return fmt.Errorf("Turn %d %s, move %d ('%s') - %s", g.moveIdx/2+int(move.PlayerColor), move.Player, g.moveIdx, move.Text, err)
 		}
 		g.moveIdx++
 	}
