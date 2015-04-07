@@ -13,9 +13,17 @@ import (
 	"github.com/mholt/chessml/pgn"
 )
 
+const numGames = 10000
+const playPct = 0.8
+
 func main() {
-	games := loadRandomGames("pgnfiles/", 20000)
-	arff.GenerateARFF(games, .8)
+	fmt.Printf("Loading %d random games\n", numGames)
+	games := loadRandomGames("pgnfiles/", numGames)
+
+	fmt.Printf("\nSnapshotting each game %d%% of the way through\n", int(playPct*100))
+	fmt.Print("and writing ARFF file...")
+	arff.GenerateARFF(games, playPct)
+	fmt.Println(" done!")
 }
 
 // loadRandomGames will load at most n games from
