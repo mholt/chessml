@@ -138,7 +138,7 @@ func (g *Game) findPiece(pm *ParsedMove) (Piece, int, int, bool) {
 				}
 
 				// First, make sure doing this move won't put the player in check
-				boardCopy := g.Board.copy()
+				boardCopy := g.Board.Copy()
 				boardCopy.MovePiece(Coord{Row: row, Col: col}, Coord{Row: destRow, Col: destCol})
 
 				// En passant doesn't directly replace the captured piece which, to our

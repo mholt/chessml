@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -131,7 +132,7 @@ func (b *Board) MovePiece(from, to Coord) (replaced Piece, err error) {
 }
 
 // copy makes a deep copy of the board
-func (b *Board) copy() Board {
+func (b *Board) Copy() Board {
 	b2 := Board{}
 	for i := 0; i < Size; i++ {
 		for j := 0; j < Size; j++ {
@@ -202,6 +203,34 @@ func NotationToCoord(algebra string) Coord {
 	c.Col = int(file - 65)
 
 	return c
+}
+
+// CoordToNotation converts a coordinate to notation like "E4".
+func CoordToNotation(c Coord) string {
+	var s string
+
+	switch c.Col {
+	case 0:
+		s = "A"
+	case 1:
+		s = "B"
+	case 2:
+		s = "C"
+	case 3:
+		s = "D"
+	case 4:
+		s = "E"
+	case 5:
+		s = "F"
+	case 6:
+		s = "G"
+	case 7:
+		s = "H"
+	}
+
+	s += strconv.Itoa(c.Row + 1)
+
+	return s
 }
 
 type (
