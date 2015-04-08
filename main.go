@@ -14,14 +14,13 @@ import (
 )
 
 const numGames = 2000
-const playPct = 0.8
 
 func main() {
 	fmt.Printf("Loading %d random games\n", numGames)
 	games := loadRandomGames("pgnfiles/", numGames)
 
 	fmt.Print("\nSnapshotting each game and writing ARFF file...")
-	arff.GenerateARFF(games, []float64{0.5, 0.8})
+	arff.GenerateARFF(games, []float64{0.75}, "data/chess75.arff")
 	fmt.Println(" done!")
 }
 

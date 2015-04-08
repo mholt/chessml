@@ -16,10 +16,10 @@ import (
 // with {0.3, 0.5} will play 30% of the moves and then snapshot the game,
 // writing a line into the ARFF file,  do that again for 50% of the
 // way through the game, etc.
-func GenerateARFF(games []chess.Game, pctMoves []float64) {
+func GenerateARFF(games []chess.Game, pctMoves []float64, filename string) {
 	sort.Float64s(pctMoves)
 
-	f, err := os.Create("data/chess.arff")
+	f, err := os.Create(filename)
 	if err != nil {
 		panic(err)
 	}

@@ -264,7 +264,8 @@ func movePossible(b Board, piece Piece, row, col, destRow, destCol int) bool {
 	return false
 }
 
-// isCheck returns true if c's King is in check, false otherwise.
+// NumCheckingKing returns the number of pieces that are putting the king in check
+// if count is true, otherwise it returns just 1 if the king is at all in check.
 func NumCheckingKing(b Board, c Color, count bool) int {
 	var kingPos Coord
 	total := 0
