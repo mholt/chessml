@@ -328,8 +328,12 @@ func (gp *gameParser) parseMove() (string, error) {
 
 		if ch == '{' {
 			// Comment in the movetext
-			for gp.getch() != '}' {
-				gp.scan()
+			for {
+				if !gp.scan() {
+					return mv, gp.err("unterminated comment")
+				} else if gp.getch() == '}' {
+					break
+				}
 			}
 			continue
 		}
@@ -370,7 +374,7 @@ func (gp *gameParser) scan() bool {
 func (gp *gameParser) err(msg string) error {
 	if gp.getch() == 0 {
 		return errors.New(fmt.Sprintf("Parse error - line %d, char %d: "+
-			"unexpected EOF", gp.line, gp.char))
+			"unexpected EOF; %s", gp.line, gp.char, msg))
 	}
 	return errors.New(fmt.Sprintf("Parse error - line %d, char %d: %s (have '%s')",
 		gp.line, gp.char, msg, string(gp.getch())))
